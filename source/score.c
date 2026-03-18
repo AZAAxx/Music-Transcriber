@@ -1,5 +1,6 @@
 #include "hal/VGA.h"
 #include "GLOBALS.h"
+#include "address-map.h"
 #include "score.h"
 
 #include <stdio.h>
@@ -27,7 +28,7 @@ void draw_notes(struct Score* scr){
 
 
 int main() {
-    volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+    volatile int * pixel_ctrl_ptr = (volatile int *)0xFF203020;
 
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // set front pixel buffer to Buffer1, store address in back buffer
     wait_for_vsync(); // swap front/back buffers

@@ -45,12 +45,3 @@ int terminal(){
 }
 
 
-char* get_string(){
-    int Enter = 0;
-    char* command;
-    while(Enter == 1){
-        //get input from the keyboard
-        //store char in command
-        //Enter = 1 if enter is pressed
-    }
-}
