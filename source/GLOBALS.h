@@ -1,5 +1,8 @@
 //define global variables such as FPS, certain color codes, certain important pixels etc. 
 
+#ifndef __GLOBALS__
+#define __GLOBALS__
+
 struct Note {   
   char note;          
   int octave;
@@ -18,6 +21,7 @@ struct ScoreList {
 
 
 
+
 const int BLACK = 0xFFFFFFFF;
 const int WHITE = 0x00000000;
 
@@ -33,3 +37,10 @@ int* barline;
 
 int* treble_cleff;
 int* bass_cleff;
+
+
+#endif
+
+
+
+
