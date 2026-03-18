@@ -5,7 +5,9 @@
 #define __VGA__
 
 #include "../address-map.h"
+#include "../Adafruit/gfxfont.h"
 
+#define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
@@ -21,7 +23,7 @@ void swap_buffers_on_vsync();
 
 void plot_pixel(int x, int y, short int color);
 
-void background(int color);
+void background(short int color);
 
 void VGA_init();
 
@@ -33,7 +35,7 @@ void draw(int* deltaP, int X, int Y);
 
 void draw_char(const GFXfont *font, char c);
 
-void write(const GFXfont *font, const char *str);
+void write(const char *str);
 
 void mouse(int X, int Y);
 

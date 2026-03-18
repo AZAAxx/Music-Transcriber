@@ -22,8 +22,8 @@ struct ScoreList {
 
 
 
-const int BLACK = 0x00000000;
-const int WHITE = 0xFFFFFFFF;
+const short int BLACK = 0x0000;
+const short int WHITE = 0xFFFF;
 
 int* whole_note;         //each int* below should be a list of delta_x, delta_y values from a center that will be colored 
 int* half_note;

@@ -260,24 +260,25 @@ const GFXfont FreeMono9pt7b = {(uint8_t *)FreeMono9pt7bBitmaps,
 
 #define PIXEL_BUF_CTRL_BASE		0xFF203020
 
-const int BLACK = 0x00000000;
-const int WHITE = 0xFFFFFFFF;
+const short int BLACK = 0x0000;
+const short int WHITE = 0xFFFF;
 
 
 int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
 int CURSOR_X_DEFAULT;
+#define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 
 volatile int * pixel_ctrl_ptr;
-volatile int * pixel_buffer_start;              // global variable
+volatile int pixel_buffer_start;              // global variable
 short int Buffer1[240][512];                  // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
 
 
 
 void swap_buffers_on_vsync() {
-    volatile int * pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
+    pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
     *pixel_ctrl_ptr = 1;                                // write 1 into the buffer reg to request a swap
     while (*(pixel_ctrl_ptr + 3) & 0x1);                // Wait until status.S turns 0
 }
@@ -293,7 +294,7 @@ void plot_pixel(int x, int y, short int color){
 
 
 
-void background(int color){                            // iterate through every x, y
+void background(short int color){                            // iterate through every x, y
     for(int x = 0; x < 320; x++){
         for(int y = 0; y < 240; y++){
             plot_pixel(x, y, color);                   // paint it black
@@ -304,7 +305,7 @@ void background(int color){                            // iterate through every 
 
 
 void VGA_init(){
-    volatile int * pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
+    pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
 
     /* set front pixel buffer to Buffer 1 */
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1;            // first store the address in the  back buffer
@@ -322,7 +323,6 @@ void VGA_init(){
     CURSOR_X_DEFAULT = 10;
     CURSOR_X = CURSOR_X_DEFAULT;
 }
-
 
 
 void draw_char(const GFXfont *font, char c)
@@ -349,8 +349,7 @@ void draw_char(const GFXfont *font, char c)
 
 
 
-void write(const GFXfont *font, const char *str)
-{
+void write(const GFXfont *font, const char *str){
     while (*str) {
         char c = *str++;
         if (c == '\n') {                                        // if there is a newline
@@ -360,13 +359,18 @@ void write(const GFXfont *font, const char *str)
         }
         draw_char(font, c);                                     // draw the char
         
-        CURSOR_X += font->glyph[c - font->first].xAdvance;             // advance cursor by the glyph's xAdvance
+        if (c >= font->first && c <= font->last)
+            CURSOR_X += font->glyph[c - font->first].xAdvance;  // advance cursor by the glyph's xAdvance
     }
 }
 
 
+
+
+
+
 int main(){
     VGA_init();
-    background(BLACK);
-    draw_char(&FreeMono9pt7b, 'a');
+    write(&FONT, "terminal");
+    swap_buffers_on_vsync();
 }

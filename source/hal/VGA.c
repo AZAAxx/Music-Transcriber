@@ -7,7 +7,7 @@
 
 
 void swap_buffers_on_vsync() {
-    volatile int * pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
+    pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
     *pixel_ctrl_ptr = 1;                                // write 1 into the buffer reg to request a swap
     while (*(pixel_ctrl_ptr + 3) & 0x1);                // Wait until status.S turns 0
 }
@@ -23,7 +23,7 @@ void plot_pixel(int x, int y, short int color){
 
 
 
-void background(int color){                            // iterate through every x, y
+void background(short int color){                            // iterate through every x, y
     for(int x = 0; x < 320; x++){
         for(int y = 0; y < 240; y++){
             plot_pixel(x, y, color);                   // paint it black
@@ -34,7 +34,7 @@ void background(int color){                            // iterate through every 
 
 
 void VGA_init(){
-    volatile int * pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
+    pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
 
     /* set front pixel buffer to Buffer 1 */
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1;            // first store the address in the  back buffer
@@ -79,8 +79,8 @@ void draw_char(const GFXfont *font, char c)
 
 
 
-void write(const GFXfont *font, const char *str)
-{
+void write(const char *str){
+    const GFXfont *font = &FONT;
     while (*str) {
         char c = *str++;
         if (c == '\n') {                                        // if there is a newline
@@ -90,7 +90,8 @@ void write(const GFXfont *font, const char *str)
         }
         draw_char(font, c);                                     // draw the char
         
-        CURSOR_X += font->glyph[c - font->first].xAdvance;             // advance cursor by the glyph's xAdvance
+        if (c >= font->first && c <= font->last)
+            CURSOR_X += font->glyph[c - font->first].xAdvance;  // advance cursor by the glyph's xAdvance
     }
 }
 
