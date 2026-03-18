@@ -6,9 +6,9 @@
 
 volatile int * AUDIO_BASE;
 
-void __init__();        // use to set up the AUDIO 
+void AUDIO_init();        // use to set up the AUDIO 
 
-void __deinit__();      // use to disble the AUDIO
+void AUDIO_deinit();      // use to disble the AUDIO
 
 int isFIFOavailable();  // use to check the WSRC, WSLC, RARC, and RALC values
 

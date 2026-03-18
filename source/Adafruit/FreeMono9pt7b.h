@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "gfxfont.h"
 
+// https://github.com/adafruit/Adafruit-GFX-Library
 
 /*
 This is the core graphics library for all our displays, providing a common
@@ -42,7 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
  */
 
 
-#pragma once
+//#pragma once
 //#include <Adafruit_GFX.h>
 
 const uint8_t FreeMono9pt7bBitmaps[] = {

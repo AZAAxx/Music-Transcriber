@@ -1,13 +1,13 @@
 #include "AUDIO.h"
 
 
-void __init__(){
+void AUDIO_init(){
     volatile int * AUDIO_BASE = (int*) AUDIO_BASE;
     *(AUDIO_BASE) = 0b1100;    // set the control register
 }
 
 
-void __deinit__(){}
+void AUDIO_deinit(){}
 
 int isFIFOavailable(){
     int audio_counters = *(AUDIO_BASE + 1);        //load audio base register
