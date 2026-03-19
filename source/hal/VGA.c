@@ -261,7 +261,10 @@ void draw_eighth_note(int x_center, int y_center) {
 
 void draw_sixteenth_note(int x_center, int y_center) {
     draw_eighth_note(x_center, y_center);
-    draw_flag(x_center, y_center + 4);
+	if (y_center > staff_center) {
+		draw_flag(x_center, y_center + 4);
+	}
+	else draw_flag(x_center, y_center - 4);
 }
 
 void draw_ledger_line(int x_center, int y_center) {
