@@ -1,11 +1,11 @@
 #include "GLOBALS.h"
 
-int exists(char name[]);              //returns 1 if a score with name alreaady exists
+int exists(char* name);              //returns 1 if a score with name alreaady exists
 
-struct Score* add(char name[]);       //adds a score with name to the list
+Score* find(char* name);      //returns a pointer to the score if it exists
 
-void delete(struct Score* scr);       //deletes the score from the list
+void add(char* name);       //adds a score with name to the list
 
-struct Score* find(char name[]);      //returns a pointer to the score if it exists
+void delete(char* name);       //deletes the score from the list
 
-char** get_scores();                  //returns the names of all the scores
+char* get_scores();                  //returns the names of all the scores

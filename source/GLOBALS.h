@@ -4,21 +4,25 @@
 #define __GLOBALS__
 
 
-struct Note {   
-  char note;          
-  int octave;
-  int duration;
-  int time;
-};
+typedef struct Note {   
+  char note; // C, D, E, F, G, A, B         
+  int octave; // only support 4 and 5 right now (middle c ic C4)
+  int duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
+} Note;
 
-struct Score {   
-  char* name;           
-  struct Note** notes;       
-};
+// this is a node in the linked list
+typedef struct Score {   
+  char name[64];           
+  struct Note notes[64]; // this will just hold all of the notes in order   
+  struct Score* next;    
+} Score;
 
-struct ScoreList {
-    struct Score** list;
-};
+// this is the linked list
+typedef struct ScoreList {
+    struct Score* head; // start of list of all of the scores 
+} ScoreList;
+
+ScoreList scoreList = {NULL};
 
 const int NOTE_WIDTH = 7; // this many pixels
 
@@ -200,34 +204,34 @@ int note[9][15] = {
     {0,0,0,0,1,1,1,1,1,1,1,0,0,0,0}
 };
 
-int flag_up[12][5] = {
-    {1,0,0,0,0},
-    {0,1,0,0,0},
-    {0,0,1,0,0},
-    {0,0,1,0,0},
-    {0,0,0,1,0},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,1,0},
-    {0,0,0,1,0}
+int flag_up[12][8] = {
+    {1,1,1,1,0,0,0,0},
+    {1,1,1,1,1,0,0,0},
+    {0,0,0,0,1,1,0,0},
+    {0,0,0,0,0,1,0,0},
+    {0,0,0,0,0,1,1,0},
+    {0,0,0,0,0,0,1,0},
+    {0,0,0,0,0,0,1,0},
+    {0,0,0,0,0,0,1,1},
+    {0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,1}
 };
 
-int flag_down[12][5] = {
-    {0,0,0,1,0},
-    {0,0,0,1,0},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,0,1},
-    {0,0,0,1,0},
-    {0,0,1,0,0},
-    {0,0,1,0,0},
-    {0,1,0,0,0},
-    {1,0,0,0,0}
+int flag_down[12][15] = {
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,1,1,0},
+    {0,0,0,0,0,0,0,0,0,0,0,1,1,0,0},
+    {0,0,0,0,0,0,0,0,0,1,1,1,0,0,0},
+    {0,0,0,0,0,0,0,1,1,1,1,0,0,0,0},    
+    {0,0,0,0,1,1,1,1,1,0,0,0,0,0,0},
+    {1,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
+    {1,1,1,0,0,0,0,0,0,0,0,0,0,0,0}
 };
 
 
