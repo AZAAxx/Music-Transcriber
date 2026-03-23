@@ -3,6 +3,8 @@
 #ifndef __GLOBALS__
 #define __GLOBALS__
 
+#include "address-map.h"
+#include <stdlib.h>
 
 typedef struct Note {   
   char note; // C, D, E, F, G, A, B         
