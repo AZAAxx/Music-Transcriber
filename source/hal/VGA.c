@@ -105,8 +105,10 @@ void VGA_init(){
 
 
 
-void draw_char(const GFXfont *font, char c)
+void draw_char(char c)
 {
+    const GFXfont *font = &FONT;
+
     if (c < font->first || c > font->last) return;
 
     const GFXglyph *glyph  = &font->glyph[c - font->first];
@@ -138,7 +140,7 @@ void write(const char *str){
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
         }
-        draw_char(font, c);                                     // draw the char
+        draw_char(c);                                     // draw the char
         
         if (c >= font->first && c <= font->last)
             CURSOR_X += font->glyph[c - font->first].xAdvance;  // advance cursor by the glyph's xAdvance
@@ -242,24 +244,16 @@ void draw_half_note(int x_center, int y_center) {
     draw_whole_note(x_center, y_center);
     if (y_center > staff_center) {
         draw_line(x_center + 7, y_center, x_center + 7, y_center - 27, BLACK);
-		draw_line(x_center + 6, y_center, x_center + 6, y_center - 27, BLACK);
     }
-    else {
-		draw_line(x_center - 7, y_center, x_center - 7, y_center + 27, BLACK);
-		draw_line(x_center - 6, y_center, x_center - 6, y_center + 27, BLACK);
-	}
+    else draw_line(x_center - 7, y_center, x_center - 7, y_center + 27, BLACK);
 }
 
 void draw_quarter_note(int x_center, int y_center) {
     draw_note(x_center, y_center);
     if (y_center > staff_center) {
         draw_line(x_center + 7, y_center, x_center + 7, y_center - 27, BLACK);
-		draw_line(x_center + 6, y_center, x_center + 6, y_center - 27, BLACK);
     }
-    else {
-		draw_line(x_center - 7, y_center, x_center - 7, y_center + 27, BLACK);
-		draw_line(x_center - 6, y_center, x_center - 6, y_center + 27, BLACK);
-	}
+    else draw_line(x_center - 7, y_center, x_center - 7, y_center + 27, BLACK);
 }
 
 void draw_eighth_note(int x_center, int y_center) {
@@ -282,7 +276,7 @@ void draw_ledger_line(int x_center, int y_center) {
 void draw_flag(int x, int y) { // x and y are start of flag
     if (y > staff_center) {
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 15; j++) {
+            for (int j = 0; j < 5; j++) {
                 if (flag_up[i][j] == 1) {
                     plot_pixel(x + 7 + j, y - 27 + i, BLACK);
                 }
@@ -291,9 +285,9 @@ void draw_flag(int x, int y) { // x and y are start of flag
     }
     else {
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 15; j++) {
+            for (int j = 0; j < 5; j++) {
                 if (flag_down[i][j] == 1) {
-                    plot_pixel(x - 7 + j, y + 27 - 12 + i, BLACK);
+                    plot_pixel(x - 7 + j, y + 27 + i, BLACK);
                 }
             }
         }  

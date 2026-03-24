@@ -8,8 +8,8 @@ volatile int * AUDIO_BASE;
 
 void AUDIO_init();        // use to set up the AUDIO 
 
-void AUDIO_deinit();      // use to disble the AUDIO
-
 int isFIFOavailable();  // use to check the WSRC, WSLC, RARC, and RALC values
+
+void play_frequency(double frequency, double volume, double duration);
 
 #endif
