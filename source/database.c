@@ -7,6 +7,7 @@
 
 // ScoreList is a Linked List with Score as the node
 ScoreList scoreList = {NULL};
+int score_count;
 
 int exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
     // search through the linked list and check for the score name
@@ -39,7 +40,7 @@ Score* find(char* name) {      // returns a pointer to the score if it exists
     return found;
 }
 
-void add(char* name) {       // adds a score with name to the list
+Score* add(char* name) {       // adds a score with name to the list
     // put newest score at the very end
     Score* current = scoreList.head;
     Score* prev = NULL;
@@ -54,6 +55,9 @@ void add(char* name) {       // adds a score with name to the list
 
     if (prev == NULL) scoreList.head = new_score;
     if (prev != NULL) prev->next = new_score;
+
+    score_count++;
+    return new_score;
 }
 
 void delete(char* name) {       // deletes the score from the list
@@ -79,6 +83,7 @@ void delete(char* name) {       // deletes the score from the list
         current = current-> next;
     }
 
+    score_count--;
     return;
 }
 
@@ -88,7 +93,7 @@ char* get_scores() {                  // returns the names of all the scores
     // empty aka no scores in list
     if (current == NULL) return NULL;
 
-    char* all_names = malloc(1024);
+    char* all_names = malloc(score_count*100 * sizeof(char));
     all_names[0] = '\0';
 
     // not empty list

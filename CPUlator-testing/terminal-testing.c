@@ -285,22 +285,22 @@ void swap_buffers_on_vsync() {
 
 
 
-
-void plot_pixel(int x, int y, short int color){
+void plot_pixel(int x, int y, short int color) {
     volatile short int *one_pixel_address;
-    one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
+    one_pixel_address = (short int*) (pixel_buffer_start + (y << 10) + (x << 1));
     *one_pixel_address = color;
 }
 
 
-
-void background(short int color){                            // iterate through every x, y
-    for(int x = 0; x < 320; x++){
-        for(int y = 0; y < 240; y++){
-            plot_pixel(x, y, color);                   // paint it black
-        }
-    }
+void background(short int color) {
+	for (int x = 0; x < 320; x++) {
+		for (int y = 0; y < 240; y++) {
+			plot_pixel(x, y, color); 
+		}
+	}
+	return;
 }
+
 
 
 
@@ -325,8 +325,11 @@ void VGA_init(){
 }
 
 
-void draw_char(const GFXfont *font, char c)
+
+void draw_char(char c)
 {
+    const GFXfont *font = &FONT;
+
     if (c < font->first || c > font->last) return;
 
     const GFXglyph *glyph  = &font->glyph[c - font->first];
@@ -349,7 +352,8 @@ void draw_char(const GFXfont *font, char c)
 
 
 
-void write(const GFXfont *font, const char *str){
+void write(const char *str){
+    const GFXfont *font = &FONT;
     while (*str) {
         char c = *str++;
         if (c == '\n') {                                        // if there is a newline
@@ -357,7 +361,7 @@ void write(const GFXfont *font, const char *str){
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
         }
-        draw_char(font, c);                                     // draw the char
+        draw_char(c);                                     // draw the char
         
         if (c >= font->first && c <= font->last)
             CURSOR_X += font->glyph[c - font->first].xAdvance;  // advance cursor by the glyph's xAdvance
@@ -366,11 +370,8 @@ void write(const GFXfont *font, const char *str){
 
 
 
-
-
-
 int main(){
     VGA_init();
-    write(&FONT, "terminal");
+    write("terminal");
     swap_buffers_on_vsync();
 }

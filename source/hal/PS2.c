@@ -65,6 +65,8 @@ char keycode2ascii(int keycode, bool shift){
 }
 
 
+
+
 char ps2_decoder(int keycode){
 
     // handle the break and extended codes
@@ -106,14 +108,17 @@ char ps2_decoder(int keycode){
 
 
 char get_keycode(){
-    int RVALID, PS2_data;
-    while(RVALID == 0){
-        PS2_data = *(ps2_data_reg) & 0xFF;   // read the Data register in the PS/2 port
+    int RVALID = 0, PS2_data;
+
+    while(1){
+        PS2_data = *(ps2_data_reg);          // read the Data register in the PS/2 port
         RVALID = PS2_data & 0x8000;          // extract the RVALID field
-    }
-    *ps2_data_reg = 0xFF;                    // reset and clear FIFO
-    return PS2_data;
+        if(RVALID) 
+            return (PS2_data & 0xFF);
+    } 
 }
+
+
 
 
 
@@ -125,20 +130,22 @@ char get_char(){
 
 
 
-char* get_line(){
-    char * command = "";
+char* get_string(){
+    char * str = "";
     while(1){
-        char c = get_char();              // get char from PS2 input
+        char c = get_char();                   // get char from PS2 input
+
         if(c == 0){
-            // invalid scancode?
-        }
-        else if(c == '\n'){                    // Enter has been pressed
-            return command;
-            ///write a newline
+            // invalid scancode, no support yet, do nothing
+            continue;
         }
         else{
-            command = strcat(command, (char*){c, '\0'});   //store char in command
-            // display the char on terminal
+            str = strcat(str, (char*){c, '\0'});   // store char in string
+            draw_char(c);                          // display the char on terminal
+
+            if(c == '\n' || c == ' '){             // return if Enter or space has been pressed
+                return str;
+            }
         }
     }
 }

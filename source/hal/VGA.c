@@ -105,8 +105,10 @@ void VGA_init(){
 
 
 
-void draw_char(const GFXfont *font, char c)
+void draw_char(char c)
 {
+    const GFXfont *font = &FONT;
+
     if (c < font->first || c > font->last) return;
 
     const GFXglyph *glyph  = &font->glyph[c - font->first];
@@ -138,7 +140,7 @@ void write(const char *str){
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
         }
-        draw_char(font, c);                                     // draw the char
+        draw_char(c);                                     // draw the char
         
         if (c >= font->first && c <= font->last)
             CURSOR_X += font->glyph[c - font->first].xAdvance;  // advance cursor by the glyph's xAdvance

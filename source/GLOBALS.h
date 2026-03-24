@@ -4,7 +4,6 @@
 #define __GLOBALS__
 
 #include "address-map.h"
-#include <stdlib.h>
 
 typedef struct Note {   
   char note; // C, D, E, F, G, A, B         
@@ -24,7 +23,6 @@ typedef struct ScoreList {
     struct Score* head; // start of list of all of the scores 
 } ScoreList;
 
-ScoreList scoreList = {NULL};
 
 const int NOTE_WIDTH = 7; // this many pixels
 
