@@ -2,8 +2,9 @@
 #include <time.h>
 
 void AUDIO_init(){
-    volatile int * AUDIO_BASE = (int*) AUDIO_BASE;
-    *(AUDIO_BASE) = 0b1100;    // set the control register
+    volatile int * audio_ptr = AUDIO_BASE;
+    *(audio_ptr) = 0x8;   // set CW bit to clear/reset the FIFOs first
+    *(audio_ptr) = 0x0;   // then clear it to normal
 }
 
 
@@ -18,32 +19,26 @@ int isFIFOavailable(){
 }
 
 void play_frequency(double frequency, double volume, double duration){
+    double t_sample = 125.0 / 1000000.0;
+    int half_period_samples = (int)((1.0 / frequency / 2.0) / t_sample);
+    if (half_period_samples < 1) half_period_samples = 1;
+    int total_samples = (int)(duration / t_sample);
 
-    int audio_counters, WSC;
-    int period, num_samples, counter;
-    
-    period = 1/frequency;                              //calulate period and number of samples in a period
-    float t_sample = 125/1000000;
-    num_samples = period / t_sample;
+    int counter = 0;
+    int sign = 1;
+    int samples_written = 0;
 
-    counter = num_samples/2;                           //store the counter initial value
-    
-    time_t t_begin = time(NULL);
-    time_t t = t_begin;
-    while(difftime(t_begin, t) < duration){
-
-        if(isFIFOavailable()){                         //check that there's space in FIFO
-            *(AUDIO_BASE + 2) = volume;                //set the left and right FIFOs to val
-            *(AUDIO_BASE + 3) = volume;     
+    while (samples_written < total_samples) {
+        if (isFIFOavailable()) {
+            *(AUDIO_BASE + 2) = (int)(sign * volume);
+            *(AUDIO_BASE + 3) = (int)(sign * volume);
+            counter++;
+            samples_written++;
+            if (counter >= half_period_samples) {
+                sign = -sign;
+                counter = 0;
+            }
         }
-
-        counter--;                                     //decrement counter
-        if(counter == 0) {                             //restart the counter and invert val if counter == 0
-            volume = -volume;
-            counter = num_samples/2;
-        }
-        
-        t = time(NULL);
     }
 }
 
