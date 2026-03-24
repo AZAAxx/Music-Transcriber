@@ -3,8 +3,8 @@
 
 #include "database.h"
 
-void score(struct Score* scr);
-void draw_notes(struct Score* scr);
+void draw_score(Score* score);
+void play_score(Score* score);
 
 
 #endif
