@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/chery/OneDrive/Documents/School/University/Year 2/Winter 2026/ECE243/Music-Transcriber",
-      "program": "c:/Users/chery/OneDrive/Documents/School/University/Year 2/Winter 2026/ECE243/Music-Transcriber/build/Debug/outDebug",
+      "cwd": "c:/Users/chery/OneDrive/Documents/School/University/Year 2/Winter 2026/ECE243/Music-Transcriber/CPUlator-testing/database-testing",
+      "program": "c:/Users/chery/OneDrive/Documents/School/University/Year 2/Winter 2026/ECE243/Music-Transcriber/CPUlator-testing/database-testing/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

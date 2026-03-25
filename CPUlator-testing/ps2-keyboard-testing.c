@@ -110,8 +110,9 @@ char ps2_decoder(int keycode){
 
 
 
-char get_keycode(){
-    int RVALID = 0, PS2_data;
+int get_keycode(){
+    int RVALID = 0;
+	int PS2_data;
 
     while(1){
         PS2_data = *(ps2_data_reg);          // read the Data register in the PS/2 port
@@ -124,8 +125,12 @@ char get_keycode(){
 
 
 char get_char(){
-    int keycode = get_keycode();
-    char c = ps2_decoder(keycode);
+	char c = 0;
+	while (c == 0) {
+		int keycode = get_keycode();
+    	c = ps2_decoder(keycode);
+		// printf("%c", c);
+	}
     return c;
 }
 
