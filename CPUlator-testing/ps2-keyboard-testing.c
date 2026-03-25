@@ -1,5 +1,6 @@
 #include "terminal-testing.c"
 #include <stdbool.h>
+#include <string.h>
 
 volatile int * ps2_data_reg;
 volatile int * ps2_ctr_reg;
@@ -134,31 +135,41 @@ char get_char(){
     return c;
 }
 
-/*int example_keycode_stream[] = {0x15, 0xF0, 0x15,
-                                0x1D, 0xF0, 0x1D,
-                                0x25, 0xF0, 0x25,
-                                0x2D, 0xF0, 0x2D
-};
 
-int main(){
-    PS2_init();
-    VGA_init();
 
-    for(int i=0; i<12; i++){
-        int keycode = example_keycode_stream[i];
-        char c = ps2_decoder(keycode);
-        //char c = get_char();
-        draw_char(c);
-    }   
-    swap_buffers_on_vsync();
-}*/
+
+char* get_string(){
+    char str[30];                           // buffer for string
+    int i = 0;
+
+    while(1){
+        char c = get_char();                // get char from PS2 input
+
+        if(c == 0){
+            // invalid scancode, no support yet, do nothing
+            continue;
+        }
+        else{
+            str[i] = c;                     // store char in string
+
+            write((char *) {c,'\0'});       // ONLY use write() to print to keep consistent cursors
+            i++;
+
+            if(c == '\n' || c == ' '){      // return if Enter or space has been pressed
+                str[i] = '\0';              // add a string termination character
+                return str;
+            }
+        }
+    }
+}
+
+
 
 
 int main(){
     PS2_init();
 	VGA_init();
-    char c = get_char();
+    char * c = get_string();
 	//char c = 'h';
-    draw_char(c);
-    swap_buffers_on_vsync();
+    
 }

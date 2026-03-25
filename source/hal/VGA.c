@@ -73,6 +73,8 @@ void draw_line(int x0, int y0, int x1, int y1, short int color) {
 	return;
 }	
 
+
+
 void swap(int* a, int* b) {
 	int temp;
 	temp = *a;
@@ -80,6 +82,8 @@ void swap(int* a, int* b) {
 	*b = temp;
 	return;
 }
+
+
 
 
 
@@ -105,6 +109,7 @@ void VGA_init(){
 
 
 
+
 void draw_char(char c)
 {
     const GFXfont *font = &FONT;
@@ -114,9 +119,9 @@ void draw_char(char c)
     const GFXglyph *glyph  = &font->glyph[c - font->first];
     const uint8_t  *bitmap = font->bitmap;
 
-    uint16_t bit_offset = glyph->bitmapOffset * 8;                      // byte → bit index
+    uint16_t bit_offset = glyph->bitmapOffset * 8;                 // byte → bit index
     int gx = CURSOR_X + glyph->xOffset;
-    int gy = CURSOR_Y + glyph->yOffset;                                 // yOffset is negative — goes above baseline
+    int gy = CURSOR_Y + glyph->yOffset;                            // yOffset is negative — goes above baseline
 
     for (int row = 0; row < glyph->height; row++) {
         for (int col = 0; col < glyph->width; col++) {
@@ -131,22 +136,28 @@ void draw_char(char c)
 
 
 
-void write(const char *str){
+
+/* ONLY USE THIS FUNCTION TO WRITE STUFF */
+void write(const char * str){
     const GFXfont *font = &FONT;
+
     while (*str) {
         char c = *str++;
-        if (c == '\n') {                                        // if there is a newline
-            CURSOR_Y += font->yAdvance;                         // increment Y to go to the next line and reset the X position 
+        if (c < font->first || c > font->last) continue;
+        if (c == '\n') {                                  // if there is a newline
+            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position 
             CURSOR_X = CURSOR_X_DEFAULT;
-            continue;
+            return;
         }
-        draw_char(c);                                           // draw the char
-        
-        if (c >= font->first && c <= font->last)
-            CURSOR_X += font->glyph[c - font->first].xAdvance;  // advance cursor by the glyph's xAdvance
+        draw_char(c);  
+        swap_buffers_on_vsync();
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+        draw_char(c);  
+
+        const GFXglyph *glyph  = &font->glyph[c - font->first];
+        CURSOR_X += glyph->xAdvance;
     }
 }
-
 
 
 void draw_staff(int x, int y) { 

@@ -38,10 +38,8 @@ void draw(int* deltaP, int X, int Y); // not sure if i will use this rn
 
 /* by default these functions keep track of where the curcor is. If you want to write to 
 a different pixel, change CURSOR_X and CURSOR_Y variables before calling the function */
-void draw_char(const GFXfont *font, char c);
-
+void draw_char(char c);
 void write(const char *str);
-
 
 
 // void mouse(int X, int Y);

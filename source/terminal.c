@@ -5,6 +5,10 @@
 
 char* help_menu = "\'new <name>\' -- create a new score\n\'open <name>\' -- open the specified score\n\'delete <name>\' -- open the specified score\n\'list\' -- list all scores";
 
+
+
+
+
 int terminal(){
     background(BLACK);
 

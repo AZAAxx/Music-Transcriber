@@ -40,7 +40,7 @@ void create_frequency_file(double frequency, double volume, double duration){
 
 
 int main(){
-    int frequency = 330;
+    int frequency = 256;
     create_frequency_file(frequency, 20, 0.1);
     printf("Input frequency: %d\n", frequency);
 }

@@ -13,13 +13,15 @@ bool shift;        // true if shift is currently pressed
 
 void PS2_init();
 
-void PS2_deinit();
+char keycode2ascii(int keycode, bool shift);
+
+char ps2_decoder(int keycode);
+
+int get_keycode();
 
 char get_char();
 
-char* get_line();
-
-char keycode_decoder(int keycode);
+char* get_string();
 
 #endif
 

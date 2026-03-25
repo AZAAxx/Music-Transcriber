@@ -134,20 +134,27 @@ char get_char(){
 
 
 
+
+
 char* get_string(){
-    char * str = "";
+    char str[30];                           // buffer for string
+    int i = 0;
+
     while(1){
-        char c = get_char();                   // get char from PS2 input
+        char c = get_char();                // get char from PS2 input
 
         if(c == 0){
             // invalid scancode, no support yet, do nothing
             continue;
         }
         else{
-            str = strcat(str, (char*){c, '\0'});   // store char in string
-            draw_char(c);                          // display the char on terminal
+            str[i] = c;                     // store char in string
 
-            if(c == '\n' || c == ' '){             // return if Enter or space has been pressed
+            write((char *) {c,'\0'});       // ONLY use write() to print to keep consistent cursors
+            i++;
+
+            if(c == '\n' || c == ' '){      // return if Enter or space has been pressed
+                str[i] = '\0';              // add a string termination character
                 return str;
             }
         }
