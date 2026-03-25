@@ -52,6 +52,7 @@ Score* add(char* name) {       // adds a score with name to the list
     Score* new_score = malloc(sizeof(Score));
     strcpy(new_score->name, name);
     new_score->next = NULL;
+    new_score->tempo = 100;    // arbitrary default value
 
     if (prev == NULL) scoreList.head = new_score;
     if (prev != NULL) prev->next = new_score;

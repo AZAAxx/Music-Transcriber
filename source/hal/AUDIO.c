@@ -1,6 +1,9 @@
 #include "AUDIO.h"
 #include "../address-map.h"
-#include <time.h>
+#include <math.h>
+
+#define f_s 8000
+#define T_s 1/f_s
 
 void AUDIO_init(){
     volatile int * audio_ptr = AUDIO_BASE;
@@ -43,3 +46,35 @@ void play_frequency(double frequency, double volume, double duration){
     }
 }
 
+
+void analyze_audio_continuous(int tempo){
+
+    // tempo is BPM, beats per minute, specifically quarter notes per minute
+    double duration_quarter = 60/tempo;
+    //double duration_eighth = 30/tempo;
+
+    // the sensitivity is for now only quarter notes
+    int total_samples = duration_quarter/T_s;
+    int samples = 0;
+    double * audio_input = malloc(total_samples * sizeof(double));
+
+    while(1){
+
+        //get the audio samples 
+        while (samples < total_samples) {
+            if (isFIFOavailable()) {
+
+                int voltage = fmax(*(AUDIO_BASE + 2), *(AUDIO_BASE + 3));    // get fmax to make it more foolproof
+                audio_input[samples] = voltage;                              // save it in array
+
+                samples++;
+            }
+        }
+
+
+        // process the audio to get the note
+        char * note = get_fft_result(audio_input, samples);
+        printf("%s\n", note);
+    }
+
+}
