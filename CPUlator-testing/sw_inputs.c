@@ -172,6 +172,36 @@ int note[9][15] = {
     {0,0,0,0,1,1,1,1,1,1,1,0,0,0,0}
 };
 
+int flag_up[12][8] = {
+    {1,1,1,1,0,0,0,0},
+    {1,1,1,1,1,0,0,0},
+    {0,0,0,0,1,1,0,0},
+    {0,0,0,0,0,1,0,0},
+    {0,0,0,0,0,1,1,0},
+    {0,0,0,0,0,0,1,0},
+    {0,0,0,0,0,0,1,0},
+    {0,0,0,0,0,0,1,1},
+    {0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,1}
+};
+
+int flag_down[12][15] = {
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
+    {0,0,0,0,0,0,0,0,0,0,0,0,1,1,0},
+    {0,0,0,0,0,0,0,0,0,0,0,1,1,0,0},
+    {0,0,0,0,0,0,0,0,0,1,1,1,0,0,0},
+    {0,0,0,0,0,0,0,1,1,1,1,0,0,0,0},    
+    {0,0,0,0,1,1,1,1,1,0,0,0,0,0,0},
+    {1,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
+    {1,1,1,0,0,0,0,0,0,0,0,0,0,0,0}
+};
+
 void plot_pixel(int x, int y, short int color);
 void background(short int color);
 void draw_line(int x0, int y0, int x1, int y1, short int line_color);
@@ -185,10 +215,14 @@ void draw_treble_clef(int x, int y);
 void draw_time_signature(int x, int y);
 void draw_toolbar();
 
-void draw_ledger_line(int x_center, int y_center);
 void draw_whole_note(int x_center, int y_center);
 void draw_note(int x_center, int y_center);
+void draw_half_note(int x_center, int y_center);
 void draw_quarter_note(int x_center, int y_center);
+void draw_eighth_note(int x_center, int y_center);
+void draw_sixteenth_note(int x_center, int y_center);
+void draw_ledger_line(int x_center, int y_center);
+void draw_flag(int x, int y);
 
 int main() {
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
@@ -226,13 +260,19 @@ int main() {
 		
 		if (sw & 0x1) {
             edge_cap = *(KEY_BASE + 3); // checking for any if any keys pressed
-            if (edge_cap & 0x3) { // KEY[0] or KEY[1] pressed
+            if (edge_cap & 0xF) { // if any KEY[3:0] pressed
 				note_drawn = true;
 				if (edge_cap & 0x1) {
 					note_type = 'w';
 				}	
 				else if (edge_cap & 0x2) {
 					note_type = 'q';	
+				}
+				else if (edge_cap & 0x4) {
+					note_type = 'e';
+				}
+				else if (edge_cap & 0x8) {
+					note_type = 's';
 				}
 				
 				if (sw & 0x2) { // SW[1] = C
@@ -276,8 +316,17 @@ int main() {
 			if (note_type == 'w') {
 				draw_whole_note(current_hor, current_vert);
 			}
+			else if (note_type == 'h') {
+				draw_half_note(current_hor, current_vert);
+			}
 			else if (note_type == 'q') {
 				draw_quarter_note(current_hor, current_vert);
+			}
+			else if (note_type == 'e') {
+				draw_eighth_note(current_hor, current_vert);
+			}
+			else if (note_type == 's') {
+				draw_sixteenth_note(current_hor, current_vert);
 			}
 		}
 				
@@ -292,8 +341,20 @@ int main() {
 				draw_whole_note(current_hor, current_vert);
 				current_hor += 120;
 			}
+			else if (note_type == 'h') {
+				draw_half_note(current_hor, current_vert);
+				current_hor += 60;
+			}
 			else if (note_type == 'q') {
 				draw_quarter_note(current_hor, current_vert);
+				current_hor += 30;
+			}
+			else if (note_type == 'e') {
+				draw_eighth_note(current_hor, current_vert);
+				current_hor += 30;
+			}
+			else if (note_type == 's') {
+				draw_sixteenth_note(current_hor, current_vert);
 				current_hor += 30;
 			}
         		
@@ -443,10 +504,6 @@ void draw_toolbar() {
     draw_line(103, 230, HOR_MAX - 103, 230, TOOLBAR_COLOR);
 }
 
-void draw_ledger_line(int x_center, int y_center) {
-    draw_line(x_center - 10, y_center, x_center + 11, y_center, BLACK);
-}
-
 void draw_whole_note(int x_center, int y_center) {
     for (int i = -4; i < 5; i++) {
         for (int j = -7; j < 8; j++) {
@@ -467,10 +524,64 @@ void draw_note(int x_center, int y_center) {
     }    
 }
 
+void draw_half_note(int x_center, int y_center) {
+    draw_whole_note(x_center, y_center);
+    if (y_center > staff_center) {
+        draw_line(x_center + 7, y_center, x_center + 7, y_center - 27, BLACK);
+		draw_line(x_center + 6, y_center, x_center + 6, y_center - 27, BLACK);
+    }
+    else {
+		draw_line(x_center - 7, y_center, x_center - 7, y_center + 27, BLACK);
+		draw_line(x_center - 6, y_center, x_center - 6, y_center + 27, BLACK);
+	}
+}
+
 void draw_quarter_note(int x_center, int y_center) {
     draw_note(x_center, y_center);
     if (y_center > staff_center) {
         draw_line(x_center + 7, y_center, x_center + 7, y_center - 27, BLACK);
+		draw_line(x_center + 6, y_center, x_center + 6, y_center - 27, BLACK);
     }
-    else draw_line(x_center - 7, y_center, x_center - 7, y_center + 27, BLACK);
+    else {
+		draw_line(x_center - 7, y_center, x_center - 7, y_center + 27, BLACK);
+		draw_line(x_center - 6, y_center, x_center - 6, y_center + 27, BLACK);
+	}
+}
+
+void draw_eighth_note(int x_center, int y_center) {
+    draw_quarter_note(x_center, y_center);
+    draw_flag(x_center, y_center);
+}
+
+void draw_sixteenth_note(int x_center, int y_center) {
+    draw_eighth_note(x_center, y_center);
+	if (y_center > staff_center) {
+		draw_flag(x_center, y_center + 8);
+	}
+	else draw_flag(x_center, y_center - 8);
+}
+
+void draw_ledger_line(int x_center, int y_center) {
+    draw_line(x_center - 10, y_center, x_center + 11, y_center, BLACK);
+}
+
+void draw_flag(int x, int y) { // x and y are start of flag
+    if (y > staff_center) {
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (flag_up[i][j] == 1) {
+                    plot_pixel(x + 7 + j, y - 27 + i, BLACK);
+                }
+            }
+        }      
+    }
+    else {
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 15; j++) {
+                if (flag_down[i][j] == 1) {
+                    plot_pixel(x - 7 + j, y + 27 - 12 + i, BLACK);
+                }
+            }
+        }  
+    }
 }
