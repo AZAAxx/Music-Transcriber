@@ -15,55 +15,49 @@ bool note_drawn = false;
 
 int main() {
     AUDIO_init();
+
     pixel_ctrl_ptr = (volatile int *)0xFF203020;
 
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // set front pixel buffer to Buffer1, store address in back buffer
-    wait_for_vsync(); // swap front/back buffers
-    pixel_buffer_start = *pixel_ctrl_ptr; // initialize pointer to pixel
-    background(WHITE); // pixel_buffer_start points to the pixel buffer
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
+    wait_for_vsync();
+    pixel_buffer_start = *pixel_ctrl_ptr;
+    background(WHITE);
 
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer2; // back pixel buffer = Buffer2
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // draw on the back buffer
-    background(WHITE); // pixel_buffer_start points to the pixel buffer
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
+    background(WHITE);
 	
-    // initialize score (staff, clef, time signature)
     draw_staff(15, 30);
-	draw_time_signature(32, 30);
-    draw_toolbar();
-    draw_staff(15, 90);
-	draw_staff(15, 150);
-	draw_bar_line(HOR_MAX - 15 - 2, 150);
-	draw_bar_line(HOR_MAX - 15 - 4, 150);
+    draw_time_signature(32, 30);
+    // draw_toolbar();
+	draw_staff(15, 110);
+	draw_staff(15, 190);
+	draw_bar_line(HOR_MAX - 15 - 2, 190);
+	draw_bar_line(HOR_MAX - 15 - 4, 190);
 	
-	wait_for_vsync(); // swap front and back buffers on VGA vertical sync
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
+    wait_for_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
-    // setting up keys
     int edge_cap;
 	
-	// setting up position
-    int current_hor = 60;
-    int current_vert = 30+27;
-	staff_center = 30+18; // temp
+    current_hor = 60;
+    current_vert = 30 + 27;
+    staff_center = 30 + 18;
 	
-    // loop which detects new inputs and draws them
     while (1) {
-        // detect edge case for button press -> make sure that SW[0] is on too
-        unsigned int sw = *SW & 0x3FF; // sw will hold what switches are on or off
+        unsigned int sw = *SW & 0x3FF;
 		
-		if (sw & 0x1) { // keep this thing so that only inputs being read when SW[0] on
-            edge_cap = *(KEY_BASE + 3); // checking for any if any keys pressed
-            // drawing score
-            if (edge_cap & 0x1) { // if KEY[0] pressed
-				draw_score(score_input); // score_input is a placeholder score
+        if (sw & 0x1) {
+            edge_cap = *(KEY_BASE + 3);
+            if (edge_cap & 0x1) {
+                draw_score(score_test);
             }
-            // playing back score
-            if (edge_cap & 0x2) { // if KEY[1] pressed
-                play_score(score_input);
-            }            
+            if (edge_cap & 0x2) {
+                play_score(score_test);
+            }
         }
-        *(KEY_BASE + 3) = 0x3FF; // reset edge capture register
-	}
+		*(KEY_BASE + 3) = 0x3FF;
+    }
 }
 
 void draw_score(Score* score){
@@ -86,6 +80,43 @@ void draw_score(Score* score){
         else if (duration == 'e') note_type = 'e';
         else if (duration == 's') note_type = 's';
 		
+        // check if going off screen
+        if      (duration == 'w') {
+            if ((current_hor + 120) > (HOR_MAX - 15)) {
+                current_hor = 60;
+                current_vert += (80);
+				staff_center += (80);
+            }
+        }
+        else if (duration == 'h') {
+            if ((current_hor + 60) > (HOR_MAX - 15)) {
+                current_hor = 60;
+                current_vert += (80);
+				staff_center += (80);
+            }
+        }
+        else if (duration == 'q') {
+            if ((current_hor + 30) > (HOR_MAX - 15)) {
+                current_hor = 60;
+                current_vert += (80);
+				staff_center += (80);
+            }
+        }
+        else if (duration == 'e') {
+            if ((current_hor + 30) > (HOR_MAX - 15)) {
+                current_hor = 60;
+                current_vert += (80);
+				staff_center += (80);
+            }
+        }
+        else if (duration == 's') {
+            if ((current_hor + 30) > (HOR_MAX - 15)) {
+                current_hor = 60;
+                current_vert += (80);
+				staff_center += (80);
+            }
+        }
+
 		// read note here (note and octave together)
         if      ((pitch == 'C') && (octave == 4)) current_vert = staff_center + 27;
         // idea for accidentals put accidental as member of Note struct
@@ -109,11 +140,11 @@ void draw_score(Score* score){
 		// keep this
         draw_staff(15, 30);
         draw_time_signature(32, 30);
-        draw_toolbar();
-		draw_staff(15, 90);
-		draw_staff(15, 150);
-		draw_bar_line(HOR_MAX - 15 - 2, 150);
-		draw_bar_line(HOR_MAX - 15 - 4, 150);
+        // draw_toolbar();
+		draw_staff(15, 110);
+		draw_staff(15, 190);
+		draw_bar_line(HOR_MAX - 15 - 2, 190);
+		draw_bar_line(HOR_MAX - 15 - 4, 190);
 		
 		// keep note_drawn thing
     	// add more notes to this
