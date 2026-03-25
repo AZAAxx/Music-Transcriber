@@ -140,7 +140,7 @@ void write(const char *str){
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
         }
-        draw_char(c);                                     // draw the char
+        draw_char(c);                                           // draw the char
         
         if (c >= font->first && c <= font->last)
             CURSOR_X += font->glyph[c - font->first].xAdvance;  // advance cursor by the glyph's xAdvance

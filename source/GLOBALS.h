@@ -15,7 +15,8 @@ typedef struct Note {
 typedef struct Score {   
   char name[64];           
   struct Note notes[64]; // this will just hold all of the notes in order   
-  struct Score* next;    
+  struct Score* next;  
+  int tempo;  
 } Score;
 
 // this is the linked list
