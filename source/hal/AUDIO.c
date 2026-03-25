@@ -59,7 +59,6 @@ void analyze_audio_continuous(int tempo){
     double * audio_input = malloc(total_samples * sizeof(double));
 
     while(1){
-
         //get the audio samples 
         while (samples < total_samples) {
             if (isFIFOavailable()) {
@@ -70,7 +69,6 @@ void analyze_audio_continuous(int tempo){
                 samples++;
             }
         }
-
 
         // process the audio to get the note
         char * note = get_fft_result(audio_input, samples);
