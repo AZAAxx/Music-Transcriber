@@ -1,8 +1,9 @@
 #include <complex.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
-#define PI 3.14159265358979323846
+#define PI 3.14159
 #define f_s 8000
 
 
@@ -99,23 +100,43 @@ double * get_fft_result(double* audio_input, int audio_size){
 
 
 
+int main(){
+
+    // get the audio input
+    FILE *audio_file = fopen("audio-data.txt", "r");  // open the file
+    if (audio_file == NULL) {
+        perror("Unable to open audio file");
+        return 1;
+    }
+    double N;
+    fscanf(audio_file, "%lf,", &N);
+
+    double* audio_input = malloc(N * sizeof(double));
+    int i = 0;
+    while (fscanf(audio_file, "%lf,", &audio_input[i]) == 1) i++;
+    fclose(audio_file);
 
 
 
 
-/*double * format_result(complex double * a, int n){
-    double * bins = malloc(n * sizeof(double));            
-
-    for(int i = 0; i < n/2; i++) {         // can ignore greate half due to symmetry
-        bins[i] = (double) cabs(a[i])/n;   // scaling 
+    FILE *fptr = fopen("FFT-result.txt", "w");
+    if (fptr == NULL) {
+        perror("Unable to open result file");
+        return 1;
     }
 
-    double * result = malloc(f_s * sizeof(double));   // f_s/2 is the max detectable frequency
+    char str[30];                                    // Buffer to hold the string
+    int n = next_pow2(N);
 
-    for(int i = 0; i < n/2; i++){
-        int freq = (int)round((double) i * f_s / n);;
-        if (freq < f_s) result[freq] = bins[i];
+    double * bins = get_fft_result(audio_input, N);
+
+    for(int i=0; i < n-1; i++){
+        sprintf(str, "%f", bins[i]);
+        fprintf(fptr, "%s", str);
+        fprintf(fptr, ", ");
     }
-    free(bins);
-    return result;
-}*/
+    sprintf(str, "%f", bins[n-1]);                   // print the last one outside the loop for formatting reasons
+    fprintf(fptr, "%s", str);
+
+    fclose(fptr);
+}
