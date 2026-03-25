@@ -16,6 +16,7 @@ void PS2_init(){
     ps2_ctr_reg = (volatile int *) PS2_BASE + 1;
 
     *ps2_data_reg = 0xFF;   // reset and clear FIFO
+    *ps2_ctr_reg  = 0x1;    // enable the PS/2 port (RE bit)
 
     break_code = false; 
     extended = false;  

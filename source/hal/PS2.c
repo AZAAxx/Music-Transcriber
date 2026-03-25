@@ -1,5 +1,6 @@
 #include "PS2.h"
 #include "../address-map.h"
+
 #include <string.h>
 #include <stdbool.h>
 
@@ -14,6 +15,7 @@ void PS2_init(){
     ps2_ctr_reg = (volatile int *) PS2_BASE + 1;
 
     *ps2_data_reg = 0xFF;   // reset and clear FIFO
+    *ps2_ctr_reg  = 0x1;    // enable the PS/2 port (RE bit)
 }
 
 
@@ -106,7 +108,6 @@ char ps2_decoder(int keycode){
 
 
 
-
 char get_keycode(){
     int RVALID = 0, PS2_data;
 
@@ -117,7 +118,6 @@ char get_keycode(){
             return (PS2_data & 0xFF);
     } 
 }
-
 
 
 

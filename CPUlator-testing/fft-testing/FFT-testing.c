@@ -152,29 +152,36 @@ void fft(double complex * a, int n, bool inverse) {
 
 
 char* find_note(double * bins, int n){
-    int max_k = 0;
-    for(int i = 0; i < n; i++){
+    int max_k = 1;                      // skip bin 0, which is the DC value
+    for(int i = 0; i < n/2; i++){
         if(bins[i] > bins[max_k]) max_k = i;
     }
     double freq = (double) max_k * f_s / n;
     
-    // something is wrong here
-    
-    printf("bin number and n: %d, %d\n", max_k, n);
     printf("Found frequency: %.2lf\n", freq);
 
     // iterate through frequency array to find the closest frequency
     int note_idx = 0;
     for(int i = 0; i < num_notes; i++){
-        if(abs(frequencies[i] - freq) < abs(frequencies[note_idx] - freq)) note_idx = i;
+        if(fabs(frequencies[i] - freq) < fabs(frequencies[note_idx] - freq)) note_idx = i;
     }
     return notes[note_idx];
 }
 
 
+// Applies a Hann window to the audio input
+void window(double* audio_input, int audio_size){
+    for(int i = 0; i < audio_size; i++){
+        double w = sin(PI * i / audio_size);
+        audio_input[i] *= w*w;
+    }
+}
+
 
 
 char * get_fft_result(double* audio_input, int audio_size){
+    window(audio_input, audio_size);
+
     int n = next_pow2(audio_size);
 
     complex double * a = format_input(audio_input, audio_size);

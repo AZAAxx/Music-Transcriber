@@ -7,7 +7,7 @@ void create_frequency_file(double frequency, double volume, double duration){
     fptr = fopen("audio-data.txt", "w");
 
     double t_sample = 125.0 / 1000000.0;
-    int half_period_samples = (int)((1.0 / frequency / 2.0) / t_sample);
+    double half_period_samples = ((1.0 / frequency / 2.0) / t_sample);
 
     if (half_period_samples < 1) half_period_samples = 1;
 
@@ -32,7 +32,6 @@ void create_frequency_file(double frequency, double volume, double duration){
             sign = -sign;
             counter = 0;
         }
-        
     }
 
     // Close the file
