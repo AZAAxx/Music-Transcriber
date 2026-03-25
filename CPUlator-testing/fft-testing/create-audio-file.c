@@ -41,5 +41,7 @@ void create_frequency_file(double frequency, double volume, double duration){
 
 
 int main(){
-    create_frequency_file(500, 20, 0.1);
+    int frequency = 800;
+    create_frequency_file(frequency, 20, 0.1);
+    printf("Input frequency: %d\n", frequency);
 }

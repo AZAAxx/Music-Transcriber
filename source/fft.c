@@ -7,6 +7,16 @@
 
 
 
+#include "fft.h"
+
+
+// NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, writing iterative FFT, or using one array for all a, a0, a1 memory
+// Add windowing and low-pass filtering as possible next steps if needed
+
+
+
+
+
 
 int next_pow2(int n) {
     int p = 1;
@@ -77,45 +87,35 @@ void fft(double complex * a, int n, bool inverse) {
 
 
 
-
-double * get_fft_result(double* audio_input, int audio_size){
-    int n = next_pow2(audio_size);
-
-    complex double * a = format_input(audio_input, audio_size);
-    fft(a, n, 0);
-    double * result = format_result(a, n);
-
-    free(a);
-
-    return result;
+char* find_note(double * bins, int n){
+    int max_k = 0;
+    for(int i = 0; i < n; i++){
+        if(bins[i] > bins[max_k]) max_k = i;
+    }
+    double freq = (double) max_k * f_s / n;
+    
+    // iterate through frequency array to find the closest frequency
+    int note_idx = 0;
+    for(int i = 0; i < num_notes; i++){
+        if(abs(frequencies[i] - freq) < abs(frequencies[note_idx] - freq)) note_idx = i;
+    }
+    return notes[note_idx];
 }
 
 
 
 
+char * get_fft_result(double* audio_input, int audio_size){
+    int n = next_pow2(audio_size);
 
-// NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, writing iterative FFT, or using one array for all a, a0, a1 memory
+    complex double * a = format_input(audio_input, audio_size);
+    fft(a, n, 0);
 
+    double * bins = format_result(a, n);
+    free(a);
 
-
-
-
-
-
-
-/*double * format_result(complex double * a, int n){
-    double * bins = malloc(n * sizeof(double));            
-
-    for(int i = 0; i < n/2; i++) {         // can ignore greate half due to symmetry
-        bins[i] = (double) cabs(a[i])/n;   // scaling 
-    }
-
-    double * result = malloc(f_s * sizeof(double));   // f_s/2 is the max detectable frequency
-
-    for(int i = 0; i < n/2; i++){
-        int freq = (int)round((double) i * f_s / n);;
-        if (freq < f_s) result[freq] = bins[i];
-    }
+    char * note = find_note(bins, n);
     free(bins);
-    return result;
-}*/
+    
+    return note;
+}
