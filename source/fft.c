@@ -10,9 +10,8 @@
 #include "fft.h"
 
 
-// NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, writing iterative FFT, or using one array for all a, a0, a1 memory
-// Add windowing and low-pass filtering as possible next steps if needed
-
+// NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, 
+// writing iterative FFT, or using one array for all a, a0, a1 memory
 
 
 

@@ -4,15 +4,20 @@
 #include "GLOBALS.h"
 #include <stdbool.h>
 
-bool exists(char* name);       //returns true if a score with name alreaady exists
+//returns true if a score with name alreaady exists
+bool exists(char* name);     
 
-Score* add(char* name);       //adds a score with name to the list
+//returns a pointer to the score if it exists
+struct Score* find(char* name); 
 
-void delete(char* name);       //deletes the score from the list
+//adds a score with name to the list
+Score* add(char* name);       
 
-struct Score* find(char* name);      //returns a pointer to the score if it exists
+//deletes the score from the list
+void delete(char* name);      
 
-char* get_scores();                  //returns the names of all the scores
+//returns the names of all the scores
+char* get_scores();                  
 
 
 #endif

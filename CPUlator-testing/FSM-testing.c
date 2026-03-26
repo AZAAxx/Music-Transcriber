@@ -717,7 +717,7 @@ char* get_scores() {                  // returns the names of all the scores
     // not empty list
     while (current != NULL) {
         strcat(all_names, current->name); // adds the name of the current score to the string
-        strcat(all_names, "    "); // for the space between the scores (4 spaces)
+        strcat(all_names, "\n"); // for the space between the scores (4 spaces)
         current = current->next;
     }
     return all_names;

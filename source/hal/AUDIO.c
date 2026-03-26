@@ -1,6 +1,8 @@
 #include "AUDIO.h"
 #include "../address-map.h"
+#include "../GLOBALS.h"
 #include <math.h>
+
 
 #define f_s 8000
 #define T_s 1/f_s
@@ -47,7 +49,9 @@ void play_frequency(double frequency, double volume, double duration){
 }
 
 
-void analyze_audio_continuous(int tempo){
+void analyze_audio_continuous(struct Score * scr){
+
+    int tempo = scr->tempo;
 
     // tempo is BPM, beats per minute, specifically quarter notes per minute
     double duration_quarter = 60/tempo;
