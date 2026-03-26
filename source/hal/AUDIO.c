@@ -6,6 +6,8 @@
 
 #define f_s 8000
 #define T_s 1/f_s
+#define PI 3.1415926535
+
 
 void AUDIO_init(){
     volatile int * audio_ptr = AUDIO_BASE;
@@ -24,7 +26,7 @@ int isFIFOavailable(){
     return 0;                           
 }
 
-void play_frequency(double frequency, double volume, double duration){
+void play_square_wave(double frequency, double volume, double duration){
     double t_sample = 125.0 / 1000000.0;
     int half_period_samples = (int)((1.0 / frequency / 2.0) / t_sample);
     if (half_period_samples < 1) half_period_samples = 1;
@@ -49,6 +51,28 @@ void play_frequency(double frequency, double volume, double duration){
 }
 
 
+void play_frequency(double frequency, double amplitude, double duration){
+    double t_sample = 125.0 / 1000000.0;
+    double period = 1 / frequency;
+
+    double N = period / t_sample;  // this is the number of samples in a period, NOT an integer
+
+    int total_samples = (int)(duration / t_sample);
+    int k = 0;                     // written sample count
+
+    // x[n] = A * sin(2PI/N * k)
+
+    while (k < total_samples) {
+        if (isFIFOavailable()) {
+            double voltage = (double) amplitude * sin(2 * PI * k / N);
+            k++;
+            *(AUDIO_BASE + 2) = voltage;
+            *(AUDIO_BASE + 3) = voltage;
+        }
+    }
+}
+
+
 void analyze_audio_continuous(struct Score * scr){
 
     int tempo = scr->tempo;
@@ -59,23 +83,23 @@ void analyze_audio_continuous(struct Score * scr){
 
     // the sensitivity is for now only quarter notes
     int total_samples = duration_quarter/T_s;
-    int samples = 0;
+    int k = 0;  // the number of samples
+
     double * audio_input = malloc(total_samples * sizeof(double));
 
     while(1){
         //get the audio samples 
-        while (samples < total_samples) {
+        while (k < total_samples) {
             if (isFIFOavailable()) {
 
                 int voltage = fmax(*(AUDIO_BASE + 2), *(AUDIO_BASE + 3));    // get fmax to make it more foolproof
-                audio_input[samples] = voltage;                              // save it in array
-
-                samples++;
+                audio_input[k] = voltage;                                    // save it in array
+                k++;
             }
         }
 
         // process the audio to get the note
-        char * note = get_fft_result(audio_input, samples);
+        char * note = get_fft_result(audio_input, k);
         printf("%s\n", note);
     }
 

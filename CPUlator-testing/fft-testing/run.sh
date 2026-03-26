@@ -9,10 +9,10 @@ CFILE="create-audio-file.c"
 EXE="${CFILE%.c}"
 echo "Compiling $CFILE..."
 rm -f "$EXE"          # remove old executable if it exists
-gcc "$CFILE" -o "$EXE"
+gcc "$CFILE" -o "$EXE" -lm
 if [ $? -eq 0 ]; then
     echo "Running $EXE..."
-    ./"$EXE"
+    ./"$EXE" $1
 else
     echo "Compilation failed for $CFILE"
     exit 1

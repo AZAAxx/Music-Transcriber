@@ -1,15 +1,18 @@
-
+#include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-void create_frequency_file(double frequency, double volume, double duration){
+#define PI 3.1415926535
+
+void create_frequency_file(double frequency, double amplitude, double duration){
     
     FILE *fptr;
     fptr = fopen("audio-data.txt", "w");
 
     double t_sample = 125.0 / 1000000.0;
-    double half_period_samples = ((1.0 / frequency / 2.0) / t_sample);
+    double period = 1 / frequency;
 
-    if (half_period_samples < 1) half_period_samples = 1;
+    double N = period / t_sample;  // this is the number of samples in a period, NOT an integer
 
     int total_samples = (int)(duration / t_sample);
 
@@ -18,29 +21,24 @@ void create_frequency_file(double frequency, double volume, double duration){
     fprintf(fptr, "%s", str);
     fprintf(fptr, ",\n");
 
-    int counter = 0;
-    int sign = 1;
-    int samples_written = 0;
+    int k = 0;
 
-    while (samples_written < total_samples) {
-        sprintf(str, "%d", (int)(sign * volume));
+    // x[n] = A * sin(2PI/N * k)
+
+    while (k < total_samples) {
+        double voltage = (double) amplitude * sin(2 * PI * k / N);
+        sprintf(str, "%lf", voltage);
         fprintf(fptr, "%s", str);
         fprintf(fptr, ", ");
-        counter++;
-        samples_written++;
-        if (counter >= half_period_samples) {
-            sign = -sign;
-            counter = 0;
-        }
+        k++;
     }
 
-    // Close the file
-    fclose(fptr);
+    fclose(fptr);     // Close the file
 }
 
 
-int main(){
-    int frequency = 256;
+int main(int argc, char *argv[]) {    
+    int frequency = atoi(argv[1]);
     create_frequency_file(frequency, 20, 0.1);
     printf("Input frequency: %d\n", frequency);
 }

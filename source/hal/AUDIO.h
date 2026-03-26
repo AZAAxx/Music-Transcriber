@@ -13,7 +13,10 @@ void AUDIO_init();
 int isFIFOavailable();  
 
 // sends the audio FIFO a square wave signal corresponding to 'frequency' for 'duration'
-void play_frequency(double frequency, double volume, double duration);
+void play_square_wave(double frequency, double volume, double duration);
+
+// send the FIFO values of a sine wave
+void play_frequency(double frequency, double amplitude, double duration);
 
 // continuosly analyzes the FIFO input and writes corresponding notes to the Score scr
 void analyze_audio_continuous(struct Score * scr);
