@@ -2,8 +2,9 @@
 #define __DATABASE__
 
 #include "GLOBALS.h"
+#include <stdbool.h>
 
-int exists(char* name);              //returns 1 if a score with name alreaady exists
+bool exists(char* name);       //returns true if a score with name alreaady exists
 
 Score* add(char* name);       //adds a score with name to the list
 

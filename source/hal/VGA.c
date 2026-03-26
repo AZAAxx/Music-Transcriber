@@ -31,8 +31,85 @@ void background(short int color) {
 
 
 
+void VGA_init(){
+    pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
+
+    /* set front pixel buffer to Buffer 1 */
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;            // first store the address in the  back buffer
+    swap_buffers_on_vsync();                           // swap the front/back buffers, to set the front buffer location
+    pixel_buffer_start = *pixel_ctrl_ptr;              // set pixel_buffer_start to use in clear_screen()
+    background(BLACK);                                 // clear the front buffer
 
 
+    /* set back pixel buffer to Buffer 2 */
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
+    background(BLACK); 
+
+    CURSOR_Y_DEFAULT = 50;                             // arbitrary values for now
+    CURSOR_X_DEFAULT = 10;
+    CURSOR_Y = CURSOR_Y_DEFAULT;
+    CURSOR_X = CURSOR_X_DEFAULT;
+}
+
+
+/* Used for Terminal.c */
+
+void draw_char(char c)
+{
+    const GFXfont *font = &FONT;
+
+    if (c < font->first || c > font->last) return;
+
+    const GFXglyph *glyph  = &font->glyph[c - font->first];
+    const uint8_t  *bitmap = font->bitmap;
+
+    uint16_t bit_offset = glyph->bitmapOffset * 8;                 // byte → bit index
+    int gx = CURSOR_X + glyph->xOffset;
+    int gy = CURSOR_Y + glyph->yOffset;                            // yOffset is negative — goes above baseline
+
+    for (int row = 0; row < glyph->height; row++) {
+        for (int col = 0; col < glyph->width; col++) {
+            uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
+           
+            if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
+                plot_pixel(gx + col, gy + row, WHITE);
+            }
+        }
+    }
+}
+
+
+/* ONLY USE THIS FUNCTION TO WRITE STUFF */
+void write(const char * str){
+    const GFXfont *font = &FONT;
+
+    while (*str != '\0') {             // while it is not the terminating character yet
+        char c = *str++;
+
+        if (c == '\n') {                                  // if there is a newline
+            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position 
+            CURSOR_X = CURSOR_X_DEFAULT;
+            continue;
+        }s
+
+        if (c < font->first || c > font->last) continue;
+        
+        draw_char(c);  
+        swap_buffers_on_vsync();
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+        draw_char(c);  
+
+        const GFXglyph *glyph  = &font->glyph[c - font->first];
+        CURSOR_X += glyph->xAdvance;
+    }
+}
+
+
+
+
+
+/* All below is used for score.c */
 
 void draw_line(int x0, int y0, int x1, int y1, short int color) {
 	bool is_steep = abs(y1 - y0) > abs (x1 - x0);
@@ -84,80 +161,6 @@ void swap(int* a, int* b) {
 }
 
 
-
-
-
-void VGA_init(){
-    pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
-
-    /* set front pixel buffer to Buffer 1 */
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;            // first store the address in the  back buffer
-    swap_buffers_on_vsync();                           // swap the front/back buffers, to set the front buffer location
-    pixel_buffer_start = *pixel_ctrl_ptr;              // set pixel_buffer_start to use in clear_screen()
-    background(BLACK);                                 // clear the front buffer
-
-
-    /* set back pixel buffer to Buffer 2 */
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
-    background(BLACK); 
-
-    CURSOR_Y = 50;                                     // arbitrary values for now
-    CURSOR_X_DEFAULT = 10;
-    CURSOR_X = CURSOR_X_DEFAULT;
-}
-
-
-
-
-void draw_char(char c)
-{
-    const GFXfont *font = &FONT;
-
-    if (c < font->first || c > font->last) return;
-
-    const GFXglyph *glyph  = &font->glyph[c - font->first];
-    const uint8_t  *bitmap = font->bitmap;
-
-    uint16_t bit_offset = glyph->bitmapOffset * 8;                 // byte → bit index
-    int gx = CURSOR_X + glyph->xOffset;
-    int gy = CURSOR_Y + glyph->yOffset;                            // yOffset is negative — goes above baseline
-
-    for (int row = 0; row < glyph->height; row++) {
-        for (int col = 0; col < glyph->width; col++) {
-            uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
-           
-            if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
-                plot_pixel(gx + col, gy + row, WHITE);
-            }
-        }
-    }
-}
-
-
-
-
-/* ONLY USE THIS FUNCTION TO WRITE STUFF */
-void write(const char * str){
-    const GFXfont *font = &FONT;
-
-    while (*str) {
-        char c = *str++;
-        if (c < font->first || c > font->last) continue;
-        if (c == '\n') {                                  // if there is a newline
-            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position 
-            CURSOR_X = CURSOR_X_DEFAULT;
-            return;
-        }
-        draw_char(c);  
-        swap_buffers_on_vsync();
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c);  
-
-        const GFXglyph *glyph  = &font->glyph[c - font->first];
-        CURSOR_X += glyph->xAdvance;
-    }
-}
 
 
 void draw_staff(int x, int y) { 

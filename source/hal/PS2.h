@@ -21,7 +21,9 @@ int get_keycode();
 
 char get_char();
 
-char* get_string();
+char * get_line();
+
+char * get_string(char ** line); // gets the first string from a line terminated by \n  
 
 #endif
 

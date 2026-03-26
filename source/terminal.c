@@ -1,60 +1,92 @@
 #include "terminal.h"
 #include "database.h"
-#include "GLOBALS.h"
+#include "hal/PS2.h"
 #include "hal/VGA.h"
+#include <string.h>
 
-char* help_menu = "\'new <name>\' -- create a new score\n\'open <name>\' -- open the specified score\n\'delete <name>\' -- open the specified score\n\'list\' -- list all scores";
-
-
-
+char* help_menu = "'new <name>'\n'open <name>'\n'delete <name>'\n'list'\n'clear'\n";
 
 
 int terminal(){
+    VGA_init();
+    PS2_init();
     background(BLACK);
 
     while(1){
         write(">> ");
-        char command[] = get_string();
+        char * line = get_line();
+        char * command = get_string(&line);
+
+        const char * str_new = "new";
+        const char * str_open = "open";
+        const char * str_delete = "delete";
+        const char * str_list = "list";
+        const char * str_help = "help";
+        const char * str_clear = "clear";
 
 
-        if(command == "new"){
-            char* name = get_string();                      //PS: I have forgotten C and dont know how to use strings
-            if(exists(name)) write("Name already exists.");
+        if(strcmp(command, str_new) == 0){
+            char* name = get_string(&line); 
+            if(exists(name)) {
+                write("Name already exists.\n");
+                continue;
+            }
             struct Score* scr = add(name);
+            write("New score '");
+            write(name);
+            write("' added.\n");
             score(scr);
         }
 
-        else if(command == "open"){
-            char* name = get_string();                      //PS: I have forgotten C and dont know how to use strings
+        else if(strcmp(command, str_open) == 0){
+            char* name = get_string(&line);
             if(!exists(name)) {
-                write("This score doesn't exist");
+                write("'");
+                write(name);
+                write("' doesn't exist.\n");
                 continue;
             }
             struct Score* scr = find(name);
+            write("Opening '");
+            write(name);
+            write("'...\n");
             score(scr);
         }
 
-        else if(command == "delete"){
-            char* name = get_string();                      //PS: I have forgotten C and dont know how to use strings
+        else if(strcmp(command, str_delete) == 0){
+            char* name = get_string(&line);
             if(!exists(name)) {
-                write("This score doesn't exist");
+                write("'");
+                write(name);
+                write("' doesn't exist.\n");
                 continue;
             }
-            struct Score* scr = find(name);
-            delete(scr);
+            delete(name);
+            write("'");
+            write(name);
+            write("' deleted.\n");
         }
         
-        else if(command == "list"){
+        else if(strcmp(command, str_list) == 0){
             char* list = get_scores();
             write(list);
         }
 
-        else if(command == "help"){
+        else if(strcmp(command, str_help) == 0){
             write(help_menu);
         }
 
+        else if(strcmp(command, str_clear) == 0){
+            background(BLACK);
+            swap_buffers_on_vsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+            background(BLACK);
+            CURSOR_X = CURSOR_X_DEFAULT;
+            CURSOR_Y = CURSOR_Y_DEFAULT;
+        }
+
         else{
-            write("Invalid command.");
+            write("Invalid command.\n");
         }
 
     }

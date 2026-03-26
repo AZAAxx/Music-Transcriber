@@ -12,6 +12,7 @@
 int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
 int CURSOR_X_DEFAULT;
+int CURSOR_Y_DEFAULT; 
 
 volatile int * pixel_ctrl_ptr;
 volatile int * pixel_buffer_start;              // global variable

@@ -1,9 +1,7 @@
 #include "PS2.h"
 #include "../address-map.h"
-
-#include <string.h>
 #include <stdbool.h>
-
+#include <stdlib.h>
 
 void PS2_init(){
     ps2_data_reg = (volatile int *) PS2_BASE;
@@ -136,27 +134,54 @@ char get_char(){
 
 
 
-char* get_string(){
-    char str[30];                           // buffer for string
+char * get_line(){
+    int buffer_size = 20;
+    char * str = malloc(buffer_size * sizeof(char));   // buffer for line
     int i = 0;
 
-    while(1){
+    while(i < buffer_size - 1){             // leave one char for the terminating character
         char c = get_char();                // get char from PS2 input
 
-        if(c == 0){
-            // invalid scancode, no support yet, do nothing
-            continue;
+        if(c == 0) continue;                // invalid scancode, no support yet, do nothing
+
+        write((char[]) {c,'\0'});           // write c 
+
+        if(c == '\n'){                      // if Enter has been pressed
+            str[i] = '\0';                  // add a string termination character
+            return str;                     // return
         }
         else{
             str[i] = c;                     // store char in string
-
-            write((char *) {c,'\0'});       // ONLY use write() to print to keep consistent cursors
             i++;
-
-            if(c == '\n' || c == ' '){      // return if Enter or space has been pressed
-                str[i] = '\0';              // add a string termination character
-                return str;
-            }
         }
     }
+    str[buffer_size - 1] = '\0';
+    return str;
+}
+
+
+
+
+// this function gets the first string from a char *
+char * get_string(char ** line){
+    int buffer_size = 20;
+    char * str = malloc(buffer_size * sizeof(char));   // buffer for string
+    int i = 0;
+
+    while(**line != '\0'){                 // while line still has chars
+        char c = **line;                   // get next char from line
+        (*line)++;                         // increment the pointer
+
+        if(c == ' '){                      // if char is a Space
+            str[i] = '\0';                 // add a string termination character
+            return str;
+        }
+
+        else{
+            str[i] = c;                     // store char in string
+            i++;
+        }
+    }
+    str[i] = '\0';
+    return str;
 }

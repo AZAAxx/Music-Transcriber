@@ -9,13 +9,13 @@
 ScoreList scoreList = {NULL};
 int score_count;
 
-int exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
+bool exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
     // search through the linked list and check for the score name
-    int exist = 0;
+    bool exist = false;
     Score* current = scoreList.head;
     while (current != NULL) { 
         if (strcmp(current->name, name) == 0) { // returns 0 if strings are identical
-            exist = 1;
+            exist = true;
         }
         current = current->next;
     }
@@ -69,6 +69,7 @@ void delete(char* name) {       // deletes the score from the list
     if (exists(name) == 0) return;
 
     // exists
+    score_count--;
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
             // last score in multi-score list
@@ -84,7 +85,6 @@ void delete(char* name) {       // deletes the score from the list
         current = current-> next;
     }
 
-    score_count--;
     return;
 }
 

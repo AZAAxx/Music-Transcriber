@@ -258,15 +258,21 @@ const GFXfont FreeMono9pt7b = {(uint8_t *)FreeMono9pt7bBitmaps,
 
 // Approx. 1516 bytes
 
+
+
+/* VGA.c and VGA.h CONTENT */
+
 #define PIXEL_BUF_CTRL_BASE		0xFF203020
 
 const short int BLACK = 0x0000;
 const short int WHITE = 0xFFFF;
 
 
-int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
-int CURSOR_Y;
+int CURSOR_Y_DEFAULT;                      // arbitrary values for now
 int CURSOR_X_DEFAULT;
+int CURSOR_Y;
+int CURSOR_X;
+
 #define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 
@@ -274,6 +280,7 @@ volatile int * pixel_ctrl_ptr;
 volatile int pixel_buffer_start;              // global variable
 short int Buffer1[240][512];                  // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
+
 
 
 
@@ -319,8 +326,9 @@ void VGA_init(){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
     background(BLACK); 
 
-    CURSOR_Y = 50;                                     // arbitrary values for now
+    CURSOR_Y_DEFAULT = 50;                             // arbitrary values for now
     CURSOR_X_DEFAULT = 10;
+    CURSOR_Y = CURSOR_Y_DEFAULT;
     CURSOR_X = CURSOR_X_DEFAULT;
 }
 
@@ -358,14 +366,17 @@ void draw_char(char c)
 void write(const char * str){
     const GFXfont *font = &FONT;
 
-    while (*str) {
+    while (*str != '\0') {             // while it is not the terminating character yet
         char c = *str++;
-        if (c < font->first || c > font->last) continue;
+
         if (c == '\n') {                                  // if there is a newline
             CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position 
             CURSOR_X = CURSOR_X_DEFAULT;
-            return;
+            continue;
         }
+
+        if (c < font->first || c > font->last) continue;
+        
         draw_char(c);  
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
@@ -378,8 +389,442 @@ void write(const char * str){
 
 
 
-int main(){
+
+/* PS2.c and PS2.h CONTENT */
+
+#include  <stdlib.h>
+#include <stdbool.h>
+
+#define PS2_BASE			0xFF200100
+
+volatile int * ps2_data_reg;
+volatile int * ps2_ctr_reg;
+
+bool break_code;  // true if F0 seen
+bool extended;     // true if E0 seen
+bool shift;        // true if shift is currently pressed
+
+
+void PS2_init(){
+    ps2_data_reg = (volatile int *) PS2_BASE;
+    ps2_ctr_reg = (volatile int *) PS2_BASE + 1;
+
+    *ps2_data_reg = 0xFF;   // reset and clear FIFO
+    *ps2_ctr_reg  = 0x1;    // enable the PS/2 port (RE bit)
+
+    break_code = false; 
+    extended = false;  
+    shift = false; 
+}
+
+
+char keycode2ascii(int keycode, bool shift){
+    switch (keycode) {
+        case 0x1C: return shift ? 'A' : 'a';
+        case 0x32: return shift ? 'B' : 'b';
+        case 0x21: return shift ? 'C' : 'c';
+        case 0x23: return shift ? 'D' : 'd';
+        case 0x24: return shift ? 'E' : 'e';
+        case 0x2B: return shift ? 'F' : 'f';
+        case 0x34: return shift ? 'G' : 'g';
+        case 0x33: return shift ? 'H' : 'h';
+        case 0x43: return shift ? 'I' : 'i';
+        case 0x3B: return shift ? 'J' : 'j';
+        case 0x42: return shift ? 'K' : 'k';
+        case 0x4B: return shift ? 'L' : 'l';
+        case 0x3A: return shift ? 'M' : 'm';
+        case 0x31: return shift ? 'N' : 'n';
+        case 0x44: return shift ? 'O' : 'o';
+        case 0x4D: return shift ? 'P' : 'p';
+        case 0x15: return shift ? 'Q' : 'q';
+        case 0x2D: return shift ? 'R' : 'r';
+        case 0x1B: return shift ? 'S' : 's';
+        case 0x2C: return shift ? 'T' : 't';
+        case 0x3C: return shift ? 'U' : 'u';
+        case 0x2A: return shift ? 'V' : 'v';
+        case 0x1D: return shift ? 'W' : 'w';
+        case 0x22: return shift ? 'X' : 'x';
+        case 0x35: return shift ? 'Y' : 'y';
+        case 0x1A: return shift ? 'Z' : 'z';
+
+        case 0x45: return shift ? ')' : '0';
+        case 0x16: return shift ? '!' : '1';
+        case 0x1E: return shift ? '@' : '2';
+        case 0x26: return shift ? '#' : '3';
+        case 0x25: return shift ? '$' : '4';
+        case 0x2E: return shift ? '%' : '5';
+        case 0x36: return shift ? '^' : '6';
+        case 0x3D: return shift ? '&' : '7';
+        case 0x3E: return shift ? '*' : '8';
+        case 0x46: return shift ? '(' : '9';
+
+        case 0x29: return ' ';  // Space
+        case 0x5A: return '\n'; // Enter
+
+        default: return 0;
+    }
+}
+
+
+
+
+char ps2_decoder(int keycode){
+
+    // handle the break and extended codes
+    if(keycode == 0xF0) {
+        break_code = true;
+        return 0;
+    }
+    else if(keycode == 0xE0) {
+        extended = true;
+        return 0;
+    }
+
+    // change ps2.shift when SHIFT is pressed depending on the break_code
+    if(keycode == 0x12 || keycode == 0x59){
+        if(break_code) shift = false;
+        else shift = true;
+        break_code = false;
+        extended = false;
+        return 0;
+    }
+
+    // ignore the scancode during the key release
+    if(break_code){
+        break_code = false;
+        extended = false;
+        return 0;
+    }
+
+    break_code = false;
+    extended = false;
+    
+    // right now no support for extended keys
+    char c = keycode2ascii(keycode, shift);
+    return c;   
+}
+
+
+
+
+
+int get_keycode(){
+    int RVALID = 0;
+	int PS2_data;
+
+    while(1){
+        PS2_data = *(ps2_data_reg);          // read the Data register in the PS/2 port
+        RVALID = PS2_data & 0x8000;          // extract the RVALID field
+        if(RVALID) 
+            return (PS2_data & 0xFF);
+    } 
+}
+
+
+
+char get_char(){
+	char c = 0;
+	while (c == 0) {
+		int keycode = get_keycode();
+    	c = ps2_decoder(keycode);
+		// printf("%c", c);
+	}
+    return c;
+}
+
+
+
+
+
+
+
+
+char * get_line(){
+    int buffer_size = 20;
+    char * str = malloc(buffer_size * sizeof(char));   // buffer for line
+    int i = 0;
+
+    while(i < buffer_size - 1){             // leave one char for the terminating character
+        char c = get_char();                // get char from PS2 input
+
+        if(c == 0) continue;                // invalid scancode, no support yet, do nothing
+
+        write((char[]) {c,'\0'});           // write c 
+
+        if(c == '\n'){                      // if Enter has been pressed
+            str[i] = '\0';                  // add a string termination character
+            return str;                     // return
+        }
+        else{
+            str[i] = c;                     // store char in string
+            i++;
+        }
+    }
+    str[buffer_size - 1] = '\0';
+    return str;
+}
+
+
+
+
+// this function gets the first string from a char *
+char * get_string(char ** line){
+    int buffer_size = 20;
+    char * str = malloc(buffer_size * sizeof(char));   // buffer for string
+    int i = 0;
+
+    while(**line != '\0'){                 // while line still has chars
+        char c = **line;                   // get next char from line
+        (*line)++;                         // increment the pointer
+
+        if(c == ' '){                      // if char is a Space
+            str[i] = '\0';                 // add a string termination character
+            return str;
+        }
+
+        else{
+            str[i] = c;                     // store char in string
+            i++;
+        }
+    }
+    str[i] = '\0';
+    return str;
+}
+
+
+
+
+/* database.c CONTENT */
+
+typedef struct Note {   
+  char note; // C, D, E, F, G, A, B         
+  int octave; // only support 4 and 5 right now (middle c ic C4)
+  char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
+} Note;
+
+// this is a node in the linked list
+typedef struct Score {   
+  char name[64];           
+  struct Note notes[64]; // this will just hold all of the notes in order   
+  struct Score* next;  
+  int tempo;  
+} Score;
+
+// this is the linked list
+typedef struct ScoreList {
+    struct Score* head; // start of list of all of the scores 
+} ScoreList;
+
+
+
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
+// ScoreList is a Linked List with Score as the node
+ScoreList scoreList = {NULL};
+int score_count;
+
+int exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
+    // search through the linked list and check for the score name
+    int exist = 0;
+    Score* current = scoreList.head;
+    while (current != NULL) { 
+        if (strcmp(current->name, name) == 0) { // returns 0 if strings are identical
+            exist = 1;
+        }
+        current = current->next;
+    }
+    return exist;
+}
+
+Score* find(char* name) {      // returns a pointer to the score if it exists
+    // search through the whole list, check the names
+    Score* found = NULL;
+    // doesn't exist
+    if (exists(name) == 0) return found;
+
+    Score* current = scoreList.head;
+    while(current != NULL) {
+        if ((strcmp(current->name, name) == 0)) {
+            found = current;
+            break;
+        }
+        current = current->next;
+    } 
+    
+    return found;
+}
+
+Score* add(char* name) {       // adds a score with name to the list
+    // put newest score at the very end
+    Score* current = scoreList.head;
+    Score* prev = NULL;
+    while (current != NULL) {
+        prev = current;
+        current = current->next;
+    }
+
+    Score* new_score = malloc(sizeof(Score));
+    strcpy(new_score->name, name);
+    new_score->next = NULL;
+    new_score->tempo = 100;    // arbitrary default value
+
+    if (prev == NULL) scoreList.head = new_score;
+    if (prev != NULL) prev->next = new_score;
+
+    score_count++;
+    return new_score;
+}
+
+void delete(char* name) {       // deletes the score from the list
+    // delete the score with the name specified
+    Score* current = scoreList.head;
+    Score* prev = NULL;
+    // doesn't exist
+    if (exists(name) == 0) return;
+
+    // exists
+    score_count--;
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            // last score in multi-score list
+            if (prev == NULL) {
+                scoreList.head = current->next; // removing the head
+            } else {
+                prev->next = current->next;
+            }
+            free(current);
+            return;
+        }
+        prev = current;
+        current = current-> next;
+    }
+
+    return;
+}
+
+char* get_scores() {                  // returns the names of all the scores
+    // go through each score return names of all scores
+    Score* current = scoreList.head;
+    // empty aka no scores in list
+    if (current == NULL) return NULL;
+
+    char* all_names = malloc(score_count*100 * sizeof(char));
+    all_names[0] = '\0';
+
+    // not empty list
+    while (current != NULL) {
+        strcat(all_names, current->name); // adds the name of the current score to the string
+        strcat(all_names, "    "); // for the space between the scores (4 spaces)
+        current = current->next;
+    }
+    return all_names;
+}
+
+
+
+
+
+
+
+
+/* terminal.c CONTENT */
+
+#include <string.h>
+
+char* help_menu = "\'new <name>\'\n'open <name>\'\n\'delete <name>\'\n\'list\'\n\'clear\'\n";
+
+
+int terminal(){
     VGA_init();
-    write("terminal");
-    swap_buffers_on_vsync();
+    PS2_init();
+    background(BLACK);
+
+    while(1){
+        write(">> ");
+        char * line = get_line();
+        char * command = get_string(&line);
+
+        const char * str_new = "new";
+        const char * str_open = "open";
+        const char * str_delete = "delete";
+        const char * str_list = "list";
+        const char * str_help = "help";
+        const char * str_clear = "clear";
+
+
+        if(strcmp(command, str_new) == 0){
+            char* name = get_string(&line); 
+            if(exists(name)) {
+                write("Name already exists.\n");
+                continue;
+            }
+            struct Score* scr = add(name);
+            write("New score \'");
+            write(name);
+            write("\' added.\n");
+            //score(scr);
+            write("Pretend the score opened!\n");
+        }
+
+        else if(strcmp(command, str_open) == 0){
+            char* name = get_string(&line);
+            if(!exists(name)) {
+                write("\'");
+                write(name);
+                write("\' doesn't exist.\n");
+                continue;
+            }
+            struct Score* scr = find(name);
+            write("Opening \'");
+            write(name);
+            write("\'...\n");
+            //score(scr);
+            write("Pretend the score opened!\n");
+        }
+
+        else if(strcmp(command, str_delete) == 0){
+            char* name = get_string(&line);
+            if(!exists(name)) {
+                write("\'");
+                write(name);
+                write("\' doesn't exist.\n");
+                continue;
+            }
+            delete(name);
+            write("\'");
+            write(name);
+            write("\' deleted.\n");
+        }
+        
+        else if(strcmp(command, str_list) == 0){
+            char* list = get_scores();
+            write(list);
+        }
+
+        else if(strcmp(command, str_help) == 0){
+            write(help_menu);
+        }
+
+        else if(strcmp(command, str_clear) == 0){
+            background(BLACK);
+            swap_buffers_on_vsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+            background(BLACK);
+            CURSOR_X = CURSOR_X_DEFAULT;
+            CURSOR_Y = CURSOR_Y_DEFAULT;
+        }
+
+        else{
+            write("Invalid command.\n");
+        }
+
+    }
+}
+
+
+int main(){
+    terminal();
 }
