@@ -10,6 +10,7 @@
 typedef struct {
     int sample_rate;
     int num_samples;
+    int bits_per_sample;
     int *samples;
     int idx;
 } WAVData;
@@ -42,7 +43,7 @@ WAVData read_wav(const char *filename) {
     fread(&sample_rate, 4, 1, f);       // e.g. 44100
     fread(&byte_rate, 4, 1, f);         // sample_rate * block_align
     fread(&block_align, 2, 1, f);       // num_channels * bits/8
-    fread(&bits_per_sample, 2, 1, f);   // 16
+    fread(&bits_per_sample, 2, 1, f);   // 32
 
     // Validate
     if (audio_format != 1) {
@@ -52,11 +53,6 @@ WAVData read_wav(const char *filename) {
     }
     if (num_channels != 1) {
         printf("Error: only mono WAV files are supported\n");
-        fclose(f);
-        return result;
-    }
-    if (bits_per_sample != 16) {
-        printf("Error: only 16-bit WAV files are supported\n");
         fclose(f);
         return result;
     }
@@ -80,7 +76,7 @@ WAVData read_wav(const char *filename) {
     }
 
     // --- Read samples ---
-    int num_samples = subchunk2_size / sizeof(short);
+    int num_samples = subchunk2_size / sizeof(int);
     int *samples = malloc(subchunk2_size);
     if (samples == NULL) {
         printf("Error: malloc failed\n");
@@ -92,6 +88,7 @@ WAVData read_wav(const char *filename) {
 
     result.sample_rate = sample_rate;
     result.num_samples = num_samples;
+    result.bits_per_sample = bits_per_sample;
     result.samples = samples;
     result.idx = 0;
     return result;
@@ -151,6 +148,7 @@ int main(int argc, char *argv[]) {
 
     printf("Sample rate: %d Hz\n", wav.sample_rate);
     printf("Num samples: %d\n", wav.num_samples);
+    printf("Bits per sample: %d\n", wav.bits_per_sample);
     printf("Duration: %.2f seconds\n", (float)wav.num_samples / wav.sample_rate);
 
     // Print first 10 samples as a sanity check
@@ -171,7 +169,7 @@ int main(int argc, char *argv[]) {
     while(wav.idx < wav.num_samples){
         //get the audio samples 
         int * audio_samples = get_audio_samples(&wav, total_samples);
-        printf("idx: %d / %d\n", wav.idx, wav.num_samples); 
+
         // process the samples
         char * note = get_fft_result(audio_samples, total_samples);    // process the audio to get the note
         printf("%s\n", note);                            // print the audio (for now)

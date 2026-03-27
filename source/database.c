@@ -5,6 +5,16 @@
 #include <string.h>
 
 
+
+void add_note(Note * new_note, Score * scr){
+    Note * last_note = scr->notes;
+    while (last_note->next != NULL) {
+        last_note = last_note->next;
+    }
+    last_note->next = new_note;
+}
+
+
 bool exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
     // search through the linked list and check for the score name
     bool exist = false;
@@ -47,6 +57,7 @@ Score* add(char* name) {       // adds a score with name to the list
 
     Score* new_score = malloc(sizeof(Score));
     strcpy(new_score->name, name);
+    new_score->notes = NULL;
     new_score->next = NULL;
     new_score->tempo = 100;    // arbitrary default value
 

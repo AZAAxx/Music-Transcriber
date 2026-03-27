@@ -157,7 +157,7 @@ char* find_note(double * bins, int n){
     }
     double freq = (double) max_k * f_s / n;
     
-    printf("Found frequency: %.2lf\n", freq);
+    printf("Found frequency: %.2lf   ", freq);
 
     // iterate through frequency array to find the closest frequency
     int note_idx = 0;
@@ -179,7 +179,7 @@ void window(int * audio_input, int audio_size){
 
 
 char * get_fft_result(int * audio_input, int audio_size){
-    //window(audio_input, audio_size);
+    window(audio_input, audio_size);
 
     int n = next_pow2(audio_size);
 
@@ -200,7 +200,7 @@ char * get_fft_result(int * audio_input, int audio_size){
 
 
 
-
+/*
 int main(){
 
     // get input from file, ONLY FOR TESTING
@@ -249,7 +249,7 @@ int main(){
 
     fclose(fptr);
 }
-
+*/
 
 
 

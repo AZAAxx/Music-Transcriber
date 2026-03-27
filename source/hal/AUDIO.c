@@ -73,15 +73,20 @@ void analyze_audio_continuous(struct Score * scr){
     int tempo = scr->tempo;                             // tempo is BPM, beats per minute, specifically quarter notes per minute
 
     double duration_quarter = (double) 60/tempo;
-    //double duration_eighth = 30/tempo;
+    double duration_eighth = (double) 30/tempo;
     
-    int total_samples = duration_quarter * f_s;           // the sensitivity is for now only quarter notes !!!
+    int total_samples = duration_eighth * f_s;           // the sensitivity is for now only quarter notes !!!
     int k = 0;                                          // the number of samples written to audio_input
 
-    double * audio_input = malloc(total_samples * sizeof(double));
+    int * audio_input = malloc(total_samples * sizeof(int));
     int right, left;
 
-    while(1){
+    int edge_cap = *(KEY_BASE + 3); 
+    bool run = edge_cap & 0x8;         // start running if KEY[3] pressed
+    *(KEY_BASE + 3) = 0x3FF;           // reset edge capture register
+    
+    while(run){ // starts and stops depending on KEY[3]
+
         //get the audio samples 
         while (k < total_samples) {
             if (isFIFOavailable()) {
@@ -90,13 +95,33 @@ void analyze_audio_continuous(struct Score * scr){
                 left = *(AUDIO_BASE + 3);
 
                 int voltage = fmax(right, left);   // get fmax to make it more foolproof
-                audio_input[k] = voltage;                // save it in array
+                audio_input[k] = voltage;          // save it in array
                 k++;
             }
         }
         
         char * note = get_fft_result(audio_input, k);    // process the audio to get the note
         printf("%s\n", note);                            // print the audio (for now)
+
+        // add the note to score
+        Note * new_note = malloc(sizeof(Note));
+        new_note->note = note[0];
+        new_note->octave = note[1] - '0';
+        new_note->duration = 'e';
+        new_note->next = NULL;
+
+        add_note(new_note, scr);
+
+
+        // optimize the notes by merging them
+
+
+
+
+        // get KEY edgecapture register 
+        edge_cap = *(KEY_BASE + 3); 
+        bool run = !(edge_cap & 0x8);      // STOP running if KEY[3] pressed
+        *(KEY_BASE + 3) = 0x3FF;           // reset edge capture register
     }
 
 }
