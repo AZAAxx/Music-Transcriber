@@ -1069,6 +1069,10 @@ void score(Score* score) {
             if (edge_cap & 0x2) {
                 play_score(score);
             }
+            if (edge_cap & 0x8) {
+                *(KEY_BASE + 3) = 0x3FF;
+                terminal();
+            }
         }
 		*(KEY_BASE + 3) = 0x3FF;
     }
@@ -1311,7 +1315,7 @@ void play_score(Score* score){
         // end checking note and octave
 		
         // generate frequency and feed to audio when audio is ready
-        double volume = 0x7FFFFFF; // max: 0x7FFFFF; min: 0x800000
+        double volume = 0x7FFFFFF; // max: 0x7FFFFFF; min: 0x8000000
         play_frequency(frequency, volume, dur);
         play_frequency(0, volume, 0.1);
 	}
@@ -1334,50 +1338,53 @@ int isFIFOavailable(){
     return 0;                           
 }
 
-void play_frequency(double frequency, double amplitude, double duration){
+// void play_frequency(double frequency, double amplitude, double duration){
+//     double t_sample = 125.0 / 1000000.0;
+
+//     int total_samples = (int)(duration / t_sample);
+//     int k = 0;
+
+//     double phase = 0.0;
+//     double phase_increment = 2.0 * PI * frequency * t_sample;
+
+//     while (k < total_samples) {
+//         if (isFIFOavailable()) {
+//             double voltage = amplitude * sin(phase);
+//             k++;
+//             *(AUDIO_BASE + 2) = voltage;
+//             *(AUDIO_BASE + 3) = voltage;
+//         }
+//         // Always advance phase, whether we wrote or not
+//         phase += phase_increment;
+//         if (phase >= 2.0 * PI)
+//             phase -= 2.0 * PI;
+//     }
+// }
+
+void play_frequency(double frequency, double volume, double duration){
     double t_sample = 125.0 / 1000000.0;
-    double period = 1.0 / frequency;
-
-    double N = period / t_sample;  // this is the number of samples in a period, NOT an integer
-
     int total_samples = (int)(duration / t_sample);
-    int k = 0;                     // written sample count
+    int samples_written = 0;
 
-    // x[n] = A * sin(2PI/N * k)
+    double phase = 0.0;
+    double phase_increment = 2.0 * PI * frequency * t_sample;
+    int sign = 1;
 
-    while (k < total_samples) {
+    while (samples_written < total_samples) {
         if (isFIFOavailable()) {
-            double voltage = (double) (amplitude * sin(2 * PI * k / N));
-            k++;
-            *(AUDIO_BASE + 2) = voltage;
-            *(AUDIO_BASE + 3) = voltage;
+            *(AUDIO_BASE + 2) = (int)(sign * volume);
+            *(AUDIO_BASE + 3) = (int)(sign * volume);
+
+            phase += phase_increment;
+            if (phase >= PI) {       // flipped at half period (PI), not full period (2PI)
+                sign = -sign;
+                phase -= PI;
+            }
+
+            samples_written++;
         }
     }
 }
-
-// void play_frequency(double frequency, double volume, double duration){
-//     double t_sample = 125.0 / 1000000.0;
-//     int half_period_samples = (int)((1.0 / frequency / 2.0) / t_sample);
-//     if (half_period_samples < 1) half_period_samples = 1;
-//     int total_samples = (int)(duration / t_sample);
-
-//     int counter = 0;
-//     int sign = 1;
-//     int samples_written = 0;
-
-//     while (samples_written < total_samples) {
-//         if (isFIFOavailable()) {
-//             *(AUDIO_BASE + 2) = (int)(sign * volume);
-//             *(AUDIO_BASE + 3) = (int)(sign * volume);
-//             counter++;
-//             samples_written++;
-//             if (counter >= half_period_samples) {
-//                 sign = -sign;
-//                 counter = 0;
-//             }
-//         }
-//     }
-// }
 
 
 /* terminal.c CONTENT */
