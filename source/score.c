@@ -12,7 +12,7 @@ void play_score(Score* score);
 
 bool note_drawn = false;
 
-int main() {
+void score(Score* score) {
     AUDIO_init();
 
     pixel_ctrl_ptr = (volatile int *)0xFF203020;
@@ -24,24 +24,8 @@ int main() {
 
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
-    background(WHITE);
-	
-    draw_staff(15, 30);
-    draw_time_signature(32, 30);
-    // draw_toolbar();
-	draw_staff(15, 110);
-	draw_staff(15, 190);
-	draw_bar_line(HOR_MAX - 15 - 2, 190);
-	draw_bar_line(HOR_MAX - 15 - 4, 190);
-	
-    swap_buffers_on_vsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
-
+    
     int edge_cap;
-	
-    current_hor = 60;
-    current_vert = 30 + 27;
-    staff_center = 30 + 18;
 	
     while (1) {
         unsigned int sw = *SW & 0x3FF;
@@ -68,6 +52,24 @@ void draw_score(Score* score){
 	// handles drawing the whole score on the page
     // draws the score using different functions for drawing notes
     // draw each note here and call it once in the main function
+    background(WHITE);
+	
+    draw_staff(15, 30);
+    draw_time_signature(32, 30);
+    // draw_toolbar();
+	draw_staff(15, 110);
+	draw_staff(15, 190);
+	draw_bar_line(HOR_MAX - 15 - 2, 190);
+	draw_bar_line(HOR_MAX - 15 - 4, 190);
+	
+    //swap_buffers_on_vsync();
+    //pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
+	
+    current_hor = 60;
+    current_vert = 30 + 27;
+    staff_center = 30 + 18;
+
+
     for (int note_idx = 0; note_idx < 64; note_idx++) { // note_idx for note array
         // read the duration here instead of edge_cap
 		Note* current_note = &score->notes[note_idx];
