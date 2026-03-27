@@ -2,11 +2,6 @@
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
-#define PI 3.14159265358979323846
-#define f_s 8000
-
-
-
 #include "fft.h"
 
 

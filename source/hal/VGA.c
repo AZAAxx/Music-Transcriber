@@ -1,4 +1,3 @@
-#include "../GLOBALS.h"
 #include "../Adafruit/FreeMono9pt7b.h"
 #include "../Adafruit/gfxfont.h"
 #include "VGA.h"
@@ -91,7 +90,7 @@ void write(const char * str){
             CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position 
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
-        }s
+        }
 
         if (c < font->first || c > font->last) continue;
         

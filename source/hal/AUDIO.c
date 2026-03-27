@@ -1,12 +1,7 @@
 #include "AUDIO.h"
 #include "../address-map.h"
-#include "../GLOBALS.h"
+#include "../database.h"
 #include <math.h>
-
-
-#define f_s 8000
-#define T_s 1/f_s
-#define PI 3.1415926535
 
 
 void AUDIO_init(){
@@ -73,34 +68,38 @@ void play_frequency(double frequency, double amplitude, double duration){
 }
 
 
+
+
+
 void analyze_audio_continuous(struct Score * scr){
 
-    int tempo = scr->tempo;
+    int tempo = scr->tempo;                             // tempo is BPM, beats per minute, specifically quarter notes per minute
 
-    // tempo is BPM, beats per minute, specifically quarter notes per minute
-    double duration_quarter = 60/tempo;
+    double duration_quarter = (double) 60/tempo;
     //double duration_eighth = 30/tempo;
-
-    // the sensitivity is for now only quarter notes
-    int total_samples = duration_quarter/T_s;
-    int k = 0;  // the number of samples
+    
+    int total_samples = duration_quarter/T_s;           // the sensitivity is for now only quarter notes !!!
+    int k = 0;                                          // the number of samples written to audio_input
 
     double * audio_input = malloc(total_samples * sizeof(double));
+    double right, left;
 
     while(1){
         //get the audio samples 
         while (k < total_samples) {
             if (isFIFOavailable()) {
 
-                int voltage = fmax(*(AUDIO_BASE + 2), *(AUDIO_BASE + 3));    // get fmax to make it more foolproof
-                audio_input[k] = voltage;                                    // save it in array
+                right = *(AUDIO_BASE + 2);
+                left = *(AUDIO_BASE + 3);
+
+                int voltage = fmax(right, left);         // get fmax to make it more foolproof
+                audio_input[k] = voltage;                // save it in array
                 k++;
             }
         }
-
-        // process the audio to get the note
-        char * note = get_fft_result(audio_input, k);
-        printf("%s\n", note);
+        
+        char * note = get_fft_result(audio_input, k);    // process the audio to get the note
+        printf("%s\n", note);                            // print the audio (for now)
     }
 
 }

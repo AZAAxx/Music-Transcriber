@@ -4,8 +4,6 @@
 #include "hal/VGA.h"
 #include <string.h>
 
-char* help_menu = "'new <name>'\n'open <name>'\n'delete <name>'\n'list'\n'clear'\n";
-
 
 int terminal(){
     VGA_init();

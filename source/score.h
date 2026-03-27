@@ -6,5 +6,4 @@
 void draw_score(Score* score);
 void play_score(Score* score);
 
-
 #endif

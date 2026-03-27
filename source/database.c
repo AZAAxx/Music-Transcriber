@@ -1,13 +1,9 @@
-#include "source/GLOBALS.h"
 #include "database.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
-// ScoreList is a Linked List with Score as the node
-ScoreList scoreList = {NULL};
-int score_count;
 
 bool exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
     // search through the linked list and check for the score name

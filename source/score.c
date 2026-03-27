@@ -1,6 +1,5 @@
 #include "hal/VGA.h"
 #include "hal/AUDIO.h"
-#include "GLOBALS.h"
 #include "address-map.h"
 #include "score.h"
 
@@ -207,7 +206,7 @@ void play_score(Score* score){
         char pitch = current_note->note;
         int octave = current_note->octave;
         double frequency = 0.0;
-        double dur 0.0; // name dur because something already named duration
+        double dur = 0.0; // name dur because something already named duration
         // also assuming 120bpm right now so 1/120 = 0.008333333333s
         int bpm = 120;
         double secs_per_beat = 60.0 / ((double) bpm);

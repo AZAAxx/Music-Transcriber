@@ -7,6 +7,9 @@
 #include <stdlib.h>
 
 
+#define PI 3.14159265358979323846
+#define f_s 8000
+
 // Frequencies (Hz)
 const double frequencies[] = {
     // C0 - B0
