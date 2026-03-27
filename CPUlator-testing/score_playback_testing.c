@@ -317,7 +317,7 @@ int main() {
     pixel_ctrl_ptr = (volatile int *)0xFF203020;
 
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
-    wait_for_vsync();
+    swap_buffers_on_vsync();
     pixel_buffer_start = *pixel_ctrl_ptr;
     background(WHITE);
 
@@ -333,7 +333,7 @@ int main() {
 	draw_bar_line(HOR_MAX - 15 - 2, 190);
 	draw_bar_line(HOR_MAX - 15 - 4, 190);
 	
-    wait_for_vsync();
+    swap_buffers_on_vsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
     int edge_cap;
@@ -462,7 +462,7 @@ void draw_score(Score* score){
 		// end of note drawing block
 		
 		// keep this
-        wait_for_vsync();
+        swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
 		// this should be the same as the other if statement with (note_drawn) except with incrementing current values
@@ -581,9 +581,15 @@ void wait_for_vsync() {
     swap_buffers_on_vsync();
 }
 
+// void swap_buffers_on_vsync() {
+//     *pixel_ctrl_ptr = 1;
+//     while (*(pixel_ctrl_ptr + 3) & 0x1);
+// }
+
 void swap_buffers_on_vsync() {
-    *pixel_ctrl_ptr = 1;
-    while (*(pixel_ctrl_ptr + 3) & 0x1);
+    pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
+    *pixel_ctrl_ptr = 1;                                // write 1 into the buffer reg to request a swap
+    while (*(pixel_ctrl_ptr + 3) & 0x1);                // Wait until status.S turns 0
 }
 
 void plot_pixel(int x, int y, short int color) {
