@@ -26,10 +26,11 @@ typedef struct ScoreList {
 
 
 
+Score test_score = {"TestScore", {{'A', 4, 'w'},  {'G', 4, 'h'}}, NULL, 120}; 
 
 // ScoreList is a Linked List with Score as the node
-ScoreList scoreList = {NULL};
-int score_count;
+ScoreList scoreList = {&test_score};
+int score_count = 0;
 
 //returns true if a score with name alreaady exists
 bool exists(char* name);     

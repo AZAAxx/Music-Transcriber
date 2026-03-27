@@ -526,8 +526,10 @@ typedef struct ScoreList {
 #include <string.h>
 
 // ScoreList is a Linked List with Score as the node
-ScoreList scoreList = {NULL};
-int score_count;
+
+Score test_score = {"TestScore", {{'A', 4, 'w'},  {'G', 4, 'h'}}, NULL, 120}; 
+ScoreList scoreList = {&test_score};
+int score_count = 0;
 
 int exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
     // search through the linked list and check for the score name
@@ -1007,8 +1009,6 @@ void draw_ledger_line(int x_center, int y_center) {
     draw_line(x_center - 10, y_center, x_center + 11, y_center, BLACK);
 }
 
-void draw_score(Score* score);
-void play_score(Score* score);
 
 void AUDIO_init();
 int isFIFOavailable();
@@ -1383,7 +1383,7 @@ int terminal(){
             write("\'...\n");
             // open score
             score(scr);
-            write("Pretend the score opened!\n");
+            //write("Pretend the score opened!\n");
         }
 
         else if(strcmp(command, str_delete) == 0){
