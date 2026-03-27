@@ -48,11 +48,16 @@ int main() {
 		
         if (sw & 0x1) {
             edge_cap = *(KEY_BASE + 3);
+            // *(KEY_BASE + 3) = 0x3FF;
             if (edge_cap & 0x1) {
-                draw_score(score_test);
+                draw_score(score);
             }
             if (edge_cap & 0x2) {
-                play_score(score_test);
+                play_score(score);
+            }
+            if (edge_cap & 0x8) {
+                *(KEY_BASE + 3) = 0x3FF;
+                terminal();
             }
         }
 		*(KEY_BASE + 3) = 0x3FF;
