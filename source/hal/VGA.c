@@ -45,7 +45,7 @@ void VGA_init(){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
     background(BLACK); 
 
-    CURSOR_Y_DEFAULT = 50;                             // arbitrary values for now
+    CURSOR_Y_DEFAULT = 20;                             // arbitrary values for now
     CURSOR_X_DEFAULT = 10;
     CURSOR_Y = CURSOR_Y_DEFAULT;
     CURSOR_X = CURSOR_X_DEFAULT;

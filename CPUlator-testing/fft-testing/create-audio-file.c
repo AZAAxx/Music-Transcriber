@@ -26,8 +26,8 @@ void create_frequency_file(double frequency, double amplitude, double duration){
     // x[n] = A * sin(2PI/N * k)
 
     while (k < total_samples) {
-        double voltage = (double) amplitude * sin(2 * PI * k / N);
-        sprintf(str, "%lf", voltage);
+        int voltage = amplitude * sin(2 * PI * k / N);
+        sprintf(str, "%d", voltage);
         fprintf(fptr, "%s", str);
         fprintf(fptr, ", ");
         k++;
@@ -39,6 +39,6 @@ void create_frequency_file(double frequency, double amplitude, double duration){
 
 int main(int argc, char *argv[]) {    
     int frequency = atoi(argv[1]);
-    create_frequency_file(frequency, 20, 0.1);
+    create_frequency_file(frequency, 1<<30 , 0.25);
     printf("Input frequency: %d\n", frequency);
 }

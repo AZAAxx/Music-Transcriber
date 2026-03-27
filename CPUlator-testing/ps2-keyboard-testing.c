@@ -267,6 +267,7 @@ const short int WHITE = 0xFFFF;
 int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
 int CURSOR_X_DEFAULT;
+int CURSOR_Y_DEFAULT;
 #define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 
@@ -318,8 +319,9 @@ void VGA_init(){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
     background(BLACK); 
 
-    CURSOR_Y = 50;                                     // arbitrary values for now
+    CURSOR_Y_DEFAULT = 20;                             // arbitrary values for now
     CURSOR_X_DEFAULT = 10;
+    CURSOR_Y = CURSOR_Y_DEFAULT;
     CURSOR_X = CURSOR_X_DEFAULT;
 }
 
@@ -564,7 +566,7 @@ char * get_string(char ** line){
             i++;
         }
     }
-    str[buffer_size - 1] = '\0';
+    str[i] = '\0';
     return str;
 }
 

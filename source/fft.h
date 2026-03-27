@@ -7,8 +7,9 @@
 #include <stdlib.h>
 
 
-#define PI 3.14159265358979323846
 #define f_s 8000
+#define PI 3.1415926535
+
 
 // Frequencies (Hz)
 const double frequencies[] = {
@@ -80,7 +81,7 @@ int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
 int next_pow2(int n);       
 
 // formats the input to turn the type to complex double and reallocate array to size next_pow2()
-double complex * format_input(double * audio_input, int audio_size);         
+double complex * format_input(int * audio_input, int audio_size);         
 
 // formats the result to turn the type to double and scales by 1/n
 double * format_result(double complex * a, int n);
@@ -92,10 +93,10 @@ void fft(double complex * a, int n, bool inverse);
 char * find_note(double * bins, int n);
 
 // Applies a Hann window to the audio input
-void window(double* audio_input, int audio_size);
+void window(int * audio_input, int audio_size);
 
 // USE THIS FUNCTION: does all the above steps and returns the note as a string
-char * get_fft_result(double* audio_input, int audio_size);
+char * get_fft_result(int * audio_input, int audio_size);
 
 
 

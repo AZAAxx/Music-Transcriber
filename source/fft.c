@@ -19,7 +19,7 @@ int next_pow2(int n) {
 }
 
 
-double complex * format_input(double * audio_input, int audio_size){
+double complex * format_input(int * audio_input, int audio_size){
     // copy the array A into array a of size 2^exp = n
     int n = next_pow2(audio_size);                             
     double complex * a = malloc(n * sizeof(double complex));
@@ -100,7 +100,7 @@ char* find_note(double * bins, int n){
 
 
 // Applies a Hann window to the audio input
-void window(double* audio_input, int audio_size){
+void window(int * audio_input, int audio_size){
     for(int i = 0; i < audio_size; i++){
         double w = sin(PI * i / audio_size);
         audio_input[i] *= w*w;
@@ -111,8 +111,8 @@ void window(double* audio_input, int audio_size){
 
 
 
-char * get_fft_result(double* audio_input, int audio_size){
-    window(audio_input, audio_size);
+char * get_fft_result(int * audio_input, int audio_size){
+    //window(audio_input, audio_size);
 
     int n = next_pow2(audio_size);
 

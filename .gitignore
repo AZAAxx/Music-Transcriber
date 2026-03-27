@@ -53,3 +53,6 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# virtual environment files
+myenv/

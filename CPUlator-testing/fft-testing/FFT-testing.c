@@ -3,11 +3,10 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define PI 3.14159
+
+
 #define f_s 8000
-
-
-
+#define PI 3.1415926535
 
 
 
@@ -89,7 +88,7 @@ int next_pow2(int n) {
 }
 
 
-double complex * format_input(double * audio_input, int audio_size){
+double complex * format_input(int * audio_input, int audio_size){
     // copy the array A into array a of size 2^exp = n
     int n = next_pow2(audio_size);                             
     double complex * a = malloc(n * sizeof(double complex));
@@ -170,7 +169,7 @@ char* find_note(double * bins, int n){
 
 
 // Applies a Hann window to the audio input
-void window(double* audio_input, int audio_size){
+void window(int * audio_input, int audio_size){
     for(int i = 0; i < audio_size; i++){
         double w = sin(PI * i / audio_size);
         audio_input[i] *= w*w;
@@ -179,8 +178,8 @@ void window(double* audio_input, int audio_size){
 
 
 
-char * get_fft_result(double* audio_input, int audio_size){
-    window(audio_input, audio_size);
+char * get_fft_result(int * audio_input, int audio_size){
+    //window(audio_input, audio_size);
 
     int n = next_pow2(audio_size);
 
@@ -204,41 +203,28 @@ char * get_fft_result(double* audio_input, int audio_size){
 
 int main(){
 
-    /* get input from file, ONLY FOR TESTING */
+    // get input from file, ONLY FOR TESTING
     FILE *audio_file = fopen("audio-data.txt", "r");  // open the file
     if (audio_file == NULL) {
         perror("Unable to open audio file");
         return 1;
     }
-    double N;
-    fscanf(audio_file, "%lf,", &N);
+    int N;
+    fscanf(audio_file, "%d,", &N);
 
-    double* audio_input = malloc(N * sizeof(double));
+    int * audio_input = malloc(N * sizeof(int));
     int i = 0;
-    while (fscanf(audio_file, "%lf,", &audio_input[i]) == 1) i++;
+    while (fscanf(audio_file, "%d,", &audio_input[i]) == 1) i++;
     fclose(audio_file);
 
 
-
-
-    
-    
-
-
     // THE FUNCTIONAL CODE
-
     char * note = get_fft_result(audio_input, N);
     printf("%s\n", note);
-
     // END OF THE FUNCTIONAL CODE
 
 
-
-
-
-
-
-    /* Write output to file, ONLY FOR TESTING */
+    // Write output to file, ONLY FOR TESTING 
     FILE *fptr = fopen("FFT-result.txt", "w");
     if (fptr == NULL) {
         perror("Unable to open result file");
@@ -254,15 +240,16 @@ int main(){
 
     char str[30];  
     for(int i=0; i < n-1; i++){
-        sprintf(str, "%f", bins[i]);
+        sprintf(str, "%lf", bins[i]);
         fprintf(fptr, "%s", str);
         fprintf(fptr, ", ");
     }
-    sprintf(str, "%f", bins[n-1]);     // print the last one outside the loop for formatting reasons
+    sprintf(str, "%lf", bins[n-1]);     // print the last one outside the loop for formatting reasons
     fprintf(fptr, "%s", str);
 
     fclose(fptr);
 }
+
 
 
 

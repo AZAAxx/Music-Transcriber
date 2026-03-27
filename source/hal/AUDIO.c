@@ -47,19 +47,16 @@ void play_square_wave(double frequency, double volume, double duration){
 
 
 void play_frequency(double frequency, double amplitude, double duration){
-    double t_sample = 125.0 / 1000000.0;
     double period = 1 / frequency;
-
-    double N = period / t_sample;  // this is the number of samples in a period, NOT an integer
-
-    int total_samples = (int)(duration / t_sample);
-    int k = 0;                     // written sample count
+    double N = period * f_s;                      // this is the number of samples in a period, NOT an integer
+    int total_samples = (int)(duration * f_s);
+    int k = 0;                                    // written sample count
 
     // x[n] = A * sin(2PI/N * k)
 
     while (k < total_samples) {
         if (isFIFOavailable()) {
-            double voltage = (double) amplitude * sin(2 * PI * k / N);
+            int voltage = amplitude * sin(2 * PI * k / N);
             k++;
             *(AUDIO_BASE + 2) = voltage;
             *(AUDIO_BASE + 3) = voltage;
@@ -78,11 +75,11 @@ void analyze_audio_continuous(struct Score * scr){
     double duration_quarter = (double) 60/tempo;
     //double duration_eighth = 30/tempo;
     
-    int total_samples = duration_quarter/T_s;           // the sensitivity is for now only quarter notes !!!
+    int total_samples = duration_quarter * f_s;           // the sensitivity is for now only quarter notes !!!
     int k = 0;                                          // the number of samples written to audio_input
 
     double * audio_input = malloc(total_samples * sizeof(double));
-    double right, left;
+    int right, left;
 
     while(1){
         //get the audio samples 
@@ -92,7 +89,7 @@ void analyze_audio_continuous(struct Score * scr){
                 right = *(AUDIO_BASE + 2);
                 left = *(AUDIO_BASE + 3);
 
-                int voltage = fmax(right, left);         // get fmax to make it more foolproof
+                int voltage = fmax(right, left);   // get fmax to make it more foolproof
                 audio_input[k] = voltage;                // save it in array
                 k++;
             }

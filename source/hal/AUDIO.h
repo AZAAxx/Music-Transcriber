@@ -3,11 +3,7 @@
 
 #include "database.h"
 
-#define T_SAMPLE 125e-6
-#define FREQ_SAMPLE 8000
-
 #define f_s 8000
-#define T_s 1/f_s
 #define PI 3.1415926535
 
 

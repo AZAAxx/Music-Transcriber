@@ -268,10 +268,13 @@ const short int BLACK = 0x0000;
 const short int WHITE = 0xFFFF;
 
 
-int CURSOR_Y_DEFAULT;                      // arbitrary values for now
-int CURSOR_X_DEFAULT;
+int CURSOR_X;                                // arbitrary values for now
 int CURSOR_Y;
-int CURSOR_X;
+
+int CURSOR_X_DEFAULT;                      
+int CURSOR_Y_DEFAULT;
+
+
 
 #define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
@@ -326,7 +329,7 @@ void VGA_init(){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
     background(BLACK); 
 
-    CURSOR_Y_DEFAULT = 50;                             // arbitrary values for now
+    CURSOR_Y_DEFAULT = 20;                             // arbitrary values for now
     CURSOR_X_DEFAULT = 10;
     CURSOR_Y = CURSOR_Y_DEFAULT;
     CURSOR_X = CURSOR_X_DEFAULT;
@@ -392,7 +395,7 @@ void write(const char * str){
 
 /* PS2.c and PS2.h CONTENT */
 
-#include  <stdlib.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 #define PS2_BASE			0xFF200100
