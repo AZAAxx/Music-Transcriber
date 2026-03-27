@@ -526,8 +526,62 @@ typedef struct ScoreList {
 #include <string.h>
 
 // ScoreList is a Linked List with Score as the node
+Score score2 = {
+    .name = "ode",
+    .next = NULL,
+    .notes = {
+        {'E', 4, 'q'},   
+        {'E', 4, 'q'},   
+        {'F', 4, 'q'},   
+        {'G', 4, 'q'},   
+        {'G', 4, 'q'},   
+        {'F', 4, 'q'},   
+        {'E', 4, 'q'},
+		{'D', 4, 'q'},
+		{'C', 4, 'q'},
+		{'C', 4, 'q'},
+		{'D', 4, 'q'},
+		{'E', 4, 'q'},
+		{'E', 4, 'h'},
+		{'D', 4, 'q'},
+		{'D', 4, 'h'},
+        {'\0', 0, '\0'}
+    }
+};
 
-Score test_score = {"TestScore", {{'A', 4, 'w'},  {'G', 4, 'h'}}, NULL, 120}; 
+Score score1 = {
+    .name = "twinkle",
+    .next = &score2,
+    .notes = {
+        {'C', 4, 'q'},   
+        {'C', 4, 'q'},   
+        {'G', 4, 'q'},   
+        {'G', 4, 'q'},   
+        {'A', 4, 'q'},   
+        {'A', 4, 'q'},   
+        {'G', 4, 'h'},
+		{'F', 4, 'q'},
+		{'F', 4, 'q'},
+		{'E', 4, 'q'},
+		{'E', 4, 'q'},
+		{'D', 4, 'q'},
+		{'D', 4, 'q'},
+		{'C', 4, 'h'},
+		{'C', 4, 'q'},
+		{'D', 4, 'q'},
+		{'E', 4, 'q'},
+		{'F', 4, 'q'},
+		{'G', 4, 'q'},
+		{'A', 4, 'q'},
+		{'B', 4, 'q'},
+		{'C', 5, 'q'},
+        {'\0', 0, '\0'}
+    }
+};
+
+Score test_score = {"TestScore", {{'A', 4, 'w'},  {'G', 4, 'h'}}, &score1, 120}; 
+
+
 ScoreList scoreList = {&test_score};
 int score_count = 0;
 
@@ -835,35 +889,7 @@ int flag_down[12][15] = {
     {1,1,1,0,0,0,0,0,0,0,0,0,0,0,0}
 };
 
-Score* score_input = &(Score){
-    .name = "twinkle",
-    .next = NULL,
-    .notes = {
-        {'C', 4, 'q'},   
-        {'C', 4, 'q'},   
-        {'G', 4, 'q'},   
-        {'G', 4, 'q'},   
-        {'A', 4, 'q'},   
-        {'A', 4, 'q'},   
-        {'G', 4, 'h'},
-		{'F', 4, 'q'},
-		{'F', 4, 'q'},
-		{'E', 4, 'q'},
-		{'E', 4, 'q'},
-		{'D', 4, 'q'},
-		{'D', 4, 'q'},
-		{'C', 4, 'h'},
-		{'C', 4, 'q'},
-		{'D', 4, 'q'},
-		{'E', 4, 'q'},
-		{'F', 4, 'q'},
-		{'G', 4, 'q'},
-		{'A', 4, 'q'},
-		{'B', 4, 'q'},
-		{'C', 5, 'q'},
-        {'\0', 0, '\0'}
-    }
-};
+
 
 void draw_score(Score* score);
 void play_score(Score* score);
@@ -1016,7 +1042,7 @@ void play_frequency(double frequency, double volume, double duration);
 
 // bool note_drawn = false;
 
-void score(Score* score_input) {
+void score(Score* score) {
     AUDIO_init();
 
     pixel_ctrl_ptr = (volatile int *)0xFF203020;
@@ -1038,10 +1064,10 @@ void score(Score* score_input) {
             edge_cap = *(KEY_BASE + 3);
             // *(KEY_BASE + 3) = 0x3FF;
             if (edge_cap & 0x1) {
-                draw_score(score_input);
+                draw_score(score);
             }
             if (edge_cap & 0x2) {
-                play_score(score_input);
+                play_score(score);
             }
         }
 		*(KEY_BASE + 3) = 0x3FF;
@@ -1285,7 +1311,7 @@ void play_score(Score* score){
         // end checking note and octave
 		
         // generate frequency and feed to audio when audio is ready
-        double volume = 0x7FFFFF; // max: 0x7FFFFF; min: 0x800000
+        double volume = 0x7FFFFFF; // max: 0x7FFFFF; min: 0x800000
         play_frequency(frequency, volume, dur);
         play_frequency(0, volume, 0.1);
 	}
@@ -1310,7 +1336,7 @@ int isFIFOavailable(){
 
 void play_frequency(double frequency, double amplitude, double duration){
     double t_sample = 125.0 / 1000000.0;
-    double period = 1 / frequency;
+    double period = 1.0 / frequency;
 
     double N = period / t_sample;  // this is the number of samples in a period, NOT an integer
 
@@ -1321,13 +1347,37 @@ void play_frequency(double frequency, double amplitude, double duration){
 
     while (k < total_samples) {
         if (isFIFOavailable()) {
-            double voltage = (double) amplitude * sin(2 * PI * k / N);
+            double voltage = (double) (amplitude * sin(2 * PI * k / N));
             k++;
             *(AUDIO_BASE + 2) = voltage;
             *(AUDIO_BASE + 3) = voltage;
         }
     }
 }
+
+// void play_frequency(double frequency, double volume, double duration){
+//     double t_sample = 125.0 / 1000000.0;
+//     int half_period_samples = (int)((1.0 / frequency / 2.0) / t_sample);
+//     if (half_period_samples < 1) half_period_samples = 1;
+//     int total_samples = (int)(duration / t_sample);
+
+//     int counter = 0;
+//     int sign = 1;
+//     int samples_written = 0;
+
+//     while (samples_written < total_samples) {
+//         if (isFIFOavailable()) {
+//             *(AUDIO_BASE + 2) = (int)(sign * volume);
+//             *(AUDIO_BASE + 3) = (int)(sign * volume);
+//             counter++;
+//             samples_written++;
+//             if (counter >= half_period_samples) {
+//                 sign = -sign;
+//                 counter = 0;
+//             }
+//         }
+//     }
+// }
 
 
 /* terminal.c CONTENT */
