@@ -46,6 +46,7 @@ void play_square_wave(double frequency, double volume, double duration){
 }
 
 
+/*
 void play_frequency(double frequency, double amplitude, double duration){
     double period = 1 / frequency;
     double N = period * f_s;                      // this is the number of samples in a period, NOT an integer
@@ -60,6 +61,36 @@ void play_frequency(double frequency, double amplitude, double duration){
             k++;
             *(AUDIO_BASE + 2) = voltage;
             *(AUDIO_BASE + 3) = voltage;
+        }
+    }
+}
+
+*/
+
+
+
+
+void play_frequency(double frequency, double volume, double duration){
+    double t_sample = 125.0 / 1000000.0;
+    int total_samples = (int)(duration / t_sample);
+    int samples_written = 0;
+
+    double phase = 0.0;
+    double phase_increment = 2.0 * PI * frequency * t_sample;
+    int sign = 1;
+
+    while (samples_written < total_samples) {
+        if (isFIFOavailable()) {
+            *(AUDIO_BASE + 2) = (int)(sign * volume);
+            *(AUDIO_BASE + 3) = (int)(sign * volume);
+
+            phase += phase_increment;
+            if (phase >= PI) {       // flipped at half period (PI), not full period (2PI)
+                sign = -sign;
+                phase -= PI;
+            }
+
+            samples_written++;
         }
     }
 }

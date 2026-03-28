@@ -58,6 +58,7 @@ char keycode2ascii(int keycode, bool shift){
 
         case 0x29: return ' ';  // Space
         case 0x5A: return '\n'; // Enter
+        case 0x66: return '\b'; // Backspace
 
         default: return 0;
     }
@@ -141,19 +142,25 @@ char * get_line(){
 
     while(i < buffer_size - 1){             // leave one char for the terminating character
         char c = get_char();                // get char from PS2 input
+        
+        if(c == 0) 
+            continue;                       // invalid scancode, no support yet, do nothing
 
-        if(c == 0) continue;                // invalid scancode, no support yet, do nothing
+        else if(c == '\b' && i > 0){        // delete the last character
+            i--;                            // go back in the str
+            delete(str[i]);
+            continue;
+        }
 
-        write((char[]) {c,'\0'});           // write c 
+        else write((char[]) {c,'\0'});      // write c 
 
         if(c == '\n'){                      // if Enter has been pressed
             str[i] = '\0';                  // add a string termination character
             return str;                     // return
         }
-        else{
-            str[i] = c;                     // store char in string
-            i++;
-        }
+        str[i] = c;                         // store char in string
+        i++;
+        
     }
     str[buffer_size - 1] = '\0';
     return str;

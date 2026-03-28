@@ -54,7 +54,7 @@ void VGA_init(){
 
 /* Used for Terminal.c */
 
-void draw_char(char c)
+void draw_char(char c, short int color)
 {
     const GFXfont *font = &FONT;
 
@@ -72,7 +72,7 @@ void draw_char(char c)
             uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
            
             if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
-                plot_pixel(gx + col, gy + row, WHITE);
+                plot_pixel(gx + col, gy + row, color);
             }
         }
     }
@@ -94,15 +94,30 @@ void write(const char * str){
 
         if (c < font->first || c > font->last) continue;
         
-        draw_char(c);  
+        draw_char(c, WHITE);  
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c);  
+        draw_char(c, WHITE);  
 
         const GFXglyph *glyph  = &font->glyph[c - font->first];
         CURSOR_X += glyph->xAdvance;
     }
 }
+
+
+
+void delete(char c){
+    const GFXfont *font = &FONT;
+    const GFXglyph *glyph  = &font->glyph[c - font->first];
+    CURSOR_X -= glyph->xAdvance;
+
+    draw_char(c, BLACK);  
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+    draw_char(c, BLACK);  
+}
+
+
 
 
 

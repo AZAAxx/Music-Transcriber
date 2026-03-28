@@ -35,12 +35,13 @@ void VGA_init();
 /* Functions used for terminal.c */
 
 // draws a character at (CURSOR_X, CURSOR_Y). NEVER use in terminal.c because it doesn't update the cursor
-void draw_char(char c);
+void draw_char(char c, short int color);
 
 // USE THIS: writes a string at (CURSOR_X, CURSOR_Y), updates the cursor position
 void write(const char *str);
 
-
+// deletes the last character c
+void delete(char c);
 
 
 /* Functions used for score.c */

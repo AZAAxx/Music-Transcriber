@@ -289,7 +289,7 @@ void play_score(Score* score){
         // end checking note and octave
 		
         // generate frequency and feed to audio when audio is ready
-        double volume = 0x7FFFFF; // max: 0x7FFFFF; min: 0x800000
+        double volume = 0x7FFFFFF;     // max: 0x7FFFFFF; min: 0x8000000
         play_frequency(frequency, volume, dur);
         play_frequency(0, volume, 0.1);
 	}

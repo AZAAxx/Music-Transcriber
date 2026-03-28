@@ -33,7 +33,7 @@ int terminal(){
             write("New score '");
             write(name);
             write("' added.\n");
-            score(scr);
+            //score(scr);
         }
 
         else if(strcmp(command, str_open) == 0){
