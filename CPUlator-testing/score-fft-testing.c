@@ -502,17 +502,17 @@ char * get_string(char ** line){
 /* database.c CONTENT */
 
 typedef struct Note {   
-  char note; // C, D, E, F, G, A, B         
-  int octave; // only support 4 and 5 right now (middle c ic C4)
-  char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
+    char note;      // C, D, E, F, G, A, B         
+    int octave;     // only support 4 and 5 right now (middle c is C4)
+    char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
 } Note;
 
 // this is a node in the linked list
 typedef struct Score {   
-  char name[64];           
-  struct Note notes[64]; // this will just hold all of the notes in order   
-  struct Score* next;  
-  int tempo;  
+    char name[64];           
+    Note notes[64];         // fixed-size array, not a pointer
+    struct Score* next;  
+    int tempo;  
 } Score;
 
 // this is the linked list
@@ -528,6 +528,7 @@ typedef struct ScoreList {
 // ScoreList is a Linked List with Score as the node
 Score score2 = {
     .name = "ode",
+    .tempo = 120,
     .next = NULL,
     .notes = {
         {'E', 4, 'q'},   
@@ -537,20 +538,21 @@ Score score2 = {
         {'G', 4, 'q'},   
         {'F', 4, 'q'},   
         {'E', 4, 'q'},
-		{'D', 4, 'q'},
-		{'C', 4, 'q'},
-		{'C', 4, 'q'},
-		{'D', 4, 'q'},
-		{'E', 4, 'q'},
-		{'E', 4, 'h'},
-		{'D', 4, 'q'},
-		{'D', 4, 'h'},
+        {'D', 4, 'q'},
+        {'C', 4, 'q'},
+        {'C', 4, 'q'},
+        {'D', 4, 'q'},
+        {'E', 4, 'q'},
+        {'E', 4, 'h'},
+        {'D', 4, 'q'},
+        {'D', 4, 'h'},
         {'\0', 0, '\0'}
     }
 };
 
 Score score1 = {
     .name = "twinkle",
+    .tempo = 120,
     .next = &score2,
     .notes = {
         {'C', 4, 'q'},   
@@ -560,64 +562,73 @@ Score score1 = {
         {'A', 4, 'q'},   
         {'A', 4, 'q'},   
         {'G', 4, 'h'},
-		{'F', 4, 'q'},
-		{'F', 4, 'q'},
-		{'E', 4, 'q'},
-		{'E', 4, 'q'},
-		{'D', 4, 'q'},
-		{'D', 4, 'q'},
-		{'C', 4, 'h'},
-		{'C', 4, 'q'},
-		{'D', 4, 'q'},
-		{'E', 4, 'q'},
-		{'F', 4, 'q'},
-		{'G', 4, 'q'},
-		{'A', 4, 'q'},
-		{'B', 4, 'q'},
-		{'C', 5, 'q'},
+        {'F', 4, 'q'},
+        {'F', 4, 'q'},
+        {'E', 4, 'q'},
+        {'E', 4, 'q'},
+        {'D', 4, 'q'},
+        {'D', 4, 'q'},
+        {'C', 4, 'h'},
+        {'C', 4, 'q'},
+        {'D', 4, 'q'},
+        {'E', 4, 'q'},
+        {'F', 4, 'q'},
+        {'G', 4, 'q'},
+        {'A', 4, 'q'},
+        {'B', 4, 'q'},
+        {'C', 5, 'q'},
         {'\0', 0, '\0'}
     }
 };
 
-Score test_score = {"TestScore", {{'A', 4, 'w'},  {'G', 4, 'h'}}, &score1, 120}; 
+// field order: name, notes, next, tempo
+Score test_score = {
+    .name = "TestScore",
+    .tempo = 120,
+    .next = &score1,
+    .notes = {
+        {'A', 4, 'w'},
+        {'G', 4, 'h'},
+        {'\0', 0, '\0'}
+    }
+};
 
 
 ScoreList scoreList = {&test_score};
-int score_count = 0;
+int score_count = 3;   // test_score, score1, score2
 
-int exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
-    // search through the linked list and check for the score name
-    int exist = 0;
+void add_note(Note* new_note, Score* scr) {
+    for (int i = 0; i < 63; i++) {
+        if (scr->notes[i].note == '\0') {
+            scr->notes[i] = *new_note;
+            scr->notes[i + 1] = (Note){'\0', 0, '\0'};
+            return;
+        }
+    }
+    // array is full, do nothing
+}
+
+bool exists(char* name) {             // returns true if a score with name already exists
     Score* current = scoreList.head;
     while (current != NULL) { 
-        if (strcmp(current->name, name) == 0) { // returns 0 if strings are identical
-            exist = 1;
-        }
+        if (strcmp(current->name, name) == 0)
+            return true;
         current = current->next;
     }
-    return exist;
+    return false;
 }
 
 Score* find(char* name) {      // returns a pointer to the score if it exists
-    // search through the whole list, check the names
-    Score* found = NULL;
-    // doesn't exist
-    if (exists(name) == 0) return found;
-
     Score* current = scoreList.head;
-    while(current != NULL) {
-        if ((strcmp(current->name, name) == 0)) {
-            found = current;
-            break;
-        }
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0)
+            return current;
         current = current->next;
-    } 
-    
-    return found;
+    }
+    return NULL;
 }
 
 Score* add(char* name) {       // adds a score with name to the list
-    // put newest score at the very end
     Score* current = scoreList.head;
     Score* prev = NULL;
     while (current != NULL) {
@@ -629,54 +640,46 @@ Score* add(char* name) {       // adds a score with name to the list
     strcpy(new_score->name, name);
     new_score->next = NULL;
     new_score->tempo = 100;    // arbitrary default value
+    new_score->notes[0] = (Note){'\0', 0, '\0'};  // empty notes array
 
     if (prev == NULL) scoreList.head = new_score;
-    if (prev != NULL) prev->next = new_score;
+    else              prev->next = new_score;
 
     score_count++;
     return new_score;
 }
 
 void delete(char* name) {       // deletes the score from the list
-    // delete the score with the name specified
     Score* current = scoreList.head;
     Score* prev = NULL;
-    // doesn't exist
-    if (exists(name) == 0) return;
 
-    // exists
+    if (!exists(name)) return;
+
     score_count--;
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
-            // last score in multi-score list
-            if (prev == NULL) {
-                scoreList.head = current->next; // removing the head
-            } else {
+            if (prev == NULL)
+                scoreList.head = current->next;
+            else
                 prev->next = current->next;
-            }
             free(current);
             return;
         }
         prev = current;
-        current = current-> next;
+        current = current->next;
     }
-
-    return;
 }
 
 char* get_scores() {                  // returns the names of all the scores
-    // go through each score return names of all scores
     Score* current = scoreList.head;
-    // empty aka no scores in list
     if (current == NULL) return NULL;
 
-    char* all_names = malloc(score_count*100 * sizeof(char));
+    char* all_names = malloc(score_count * 100 * sizeof(char));
     all_names[0] = '\0';
 
-    // not empty list
     while (current != NULL) {
-        strcat(all_names, current->name); // adds the name of the current score to the string
-        strcat(all_names, "\n"); // for the space between the scores (4 spaces)
+        strcat(all_names, current->name);
+        strcat(all_names, "\n");
         current = current->next;
     }
     return all_names;
@@ -1071,7 +1074,7 @@ void score(Score* score) {
                 play_score(score);
             }
             if (edge_cap & 0x4) {
-                //analyze_audio_continuous();
+                analyze_audio_continuous();
             }
             if (edge_cap & 0x8) {
                 *(KEY_BASE + 3) = 0x3FF;
@@ -1485,6 +1488,137 @@ int terminal(){
 
     }
 }
+
+/* fft.c CONTENT */
+#include <complex.h>
+#include <stdbool.h>
+#include <math.h>
+#include <stdlib.h>
+
+
+// NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, 
+// writing iterative FFT, or using one array for all a, a0, a1 memory
+
+
+
+
+
+int next_pow2(int n) {
+    int p = 1;
+    while (p < n) p <<= 1;
+    return p;
+}
+
+
+double complex * format_input(int * audio_input, int audio_size){
+    // copy the array A into array a of size 2^exp = n
+    int n = next_pow2(audio_size);                             
+    double complex * a = malloc(n * sizeof(double complex));
+    for(int i=0; i<n; i++) {
+        if(i < audio_size) a[i] = CMPLX(audio_input[i], 0);
+        else a[i] = 0;
+    }
+    return a;
+}
+
+
+
+double * format_result(complex double * a, int n){
+    double * bins = malloc(n * sizeof(double));
+    for(int i = 0; i < n; i++)
+        bins[i] = (double) 2 * cabs(a[i]) / n;
+    return bins;
+}
+
+
+
+
+
+// Main source: https://cp-algorithms.com/algebra/fft.html
+void fft(double complex * a, int n, bool inverse) {
+    if (n == 1)
+        return;
+
+
+    double complex *a0 = malloc(n/2 * sizeof(double complex));
+    double complex *a1 = malloc(n/2 * sizeof(double complex));
+
+    for (int i = 0; 2 * i < n; i++) {
+        a0[i] = a[2*i];
+        a1[i] = a[2*i+1];
+    }
+    fft(a0, n/2, inverse);
+    fft(a1, n/2, inverse);
+
+    double ang = 2 * PI / n * (inverse ? -1 : 1);
+
+    double complex w = CMPLX(1, 0);
+    double complex wn = CMPLX(cos(ang), sin(ang));
+
+    for (int i = 0; 2 * i < n; i++) {
+        a[i] = a0[i] + w * a1[i];
+        a[i + n/2] = a0[i] - w * a1[i];
+        if (inverse) {
+            a[i] /= 2;
+            a[i + n/2] /= 2;
+        }
+        w *= wn;
+    }
+
+    free(a0);
+    free(a1);
+}
+
+
+
+
+char* find_note(double * bins, int n){
+    int max_k = 1;                      // skip bin 0, which is the DC value
+    for(int i = 0; i < n/2; i++){
+        if(bins[i] > bins[max_k]) max_k = i;
+    }
+    double freq = (double) max_k * f_s / n;
+
+    // iterate through frequency array to find the closest frequency
+    int note_idx = 0;
+    for(int i = 0; i < num_notes; i++){
+        if(fabs(frequencies[i] - freq) < fabs(frequencies[note_idx] - freq)) note_idx = i;
+    }
+    return notes[note_idx];
+}
+
+
+
+
+// Applies a Hann window to the audio input
+void window(int * audio_input, int audio_size){
+    for(int i = 0; i < audio_size; i++){
+        double w = sin(PI * i / audio_size);
+        audio_input[i] *= w*w;
+    }
+}
+
+
+
+
+
+char * get_fft_result(int * audio_input, int audio_size){
+    //window(audio_input, audio_size);
+
+    int n = next_pow2(audio_size);
+
+    complex double * a = format_input(audio_input, audio_size);
+    fft(a, n, 0);
+
+    double * bins = format_result(a, n);
+    free(a);
+
+    char * note = find_note(bins, n);
+    free(bins);
+    
+    return note;
+}
+
 
 int main(){
     terminal();

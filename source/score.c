@@ -24,6 +24,7 @@ void score(Score* score) {
 
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
+    draw_score(score);
     
     int edge_cap;
 	
@@ -38,6 +39,9 @@ void score(Score* score) {
             }
             if (edge_cap & 0x2) {
                 play_score(score);
+            }
+            if (edge_cap & 0x4) {
+                //analyze_audio_continuous();
             }
             if (edge_cap & 0x8) {
                 *(KEY_BASE + 3) = 0x3FF;
