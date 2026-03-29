@@ -258,17 +258,23 @@ const GFXfont FreeMono9pt7b = {(uint8_t *)FreeMono9pt7bBitmaps,
 
 // Approx. 1516 bytes
 
+/* VGA.c and VGA.h CONTENT */
+
 #define PIXEL_BUF_CTRL_BASE		0xFF203020
+#define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 const short int BLACK = 0x0000;
 const short int WHITE = 0xFFFF;
-
 
 int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
 int CURSOR_X_DEFAULT;
 int CURSOR_Y_DEFAULT;
-#define FONT FreeMono9pt7b                   // global font when not specified otherwise
+
+volatile int * pixel_ctrl_ptr;
+volatile int pixel_buffer_start;              // global variable
+short int Buffer1[240][512];                  // 240 rows, 512 (320 + padding) columns
+short int Buffer2[240][512];
 
 
 volatile int * pixel_ctrl_ptr;
@@ -326,7 +332,7 @@ void VGA_init(){
 }
 
 
-void draw_char(char c)
+void draw_char(char c, short int color)
 {
     const GFXfont *font = &FONT;
 
@@ -344,7 +350,7 @@ void draw_char(char c)
             uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
            
             if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
-                plot_pixel(gx + col, gy + row, WHITE);
+                plot_pixel(gx + col, gy + row, color);
             }
         }
     }
@@ -367,10 +373,10 @@ void write(const char * str){
 
         if (c < font->first || c > font->last) continue;
         
-        draw_char(c);  
+        draw_char(c, WHITE);  
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c);  
+        draw_char(c, WHITE);  
 
         const GFXglyph *glyph  = &font->glyph[c - font->first];
         CURSOR_X += glyph->xAdvance;
@@ -379,6 +385,21 @@ void write(const char * str){
 
 
 
+void delete_char(char c){
+    const GFXfont *font = &FONT;
+    const GFXglyph *glyph  = &font->glyph[c - font->first];
+    CURSOR_X -= glyph->xAdvance;
+
+    draw_char(c, BLACK);  
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+    draw_char(c, BLACK);  
+}
+
+
+
+
+/* PS2.c and PS2.h CONTENT */
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -448,6 +469,7 @@ char keycode2ascii(int keycode, bool shift){
 
         case 0x29: return ' ';  // Space
         case 0x5A: return '\n'; // Enter
+        case 0x66: return '\b'; // Backspace
 
         default: return 0;
     }
@@ -525,19 +547,25 @@ char * get_line(){
 
     while(i < buffer_size - 1){             // leave one char for the terminating character
         char c = get_char();                // get char from PS2 input
+        
+        if(c == 0) 
+            continue;                       // invalid scancode, no support yet, do nothing
 
-        if(c == 0) continue;                // invalid scancode, no support yet, do nothing
+        else if(c == '\b' && i > 0){        // delete the last character
+            i--;                            // go back in the str
+            delete_char(str[i]);
+            continue;
+        }
 
-        write((char[]) {c,'\0'});           // write c 
+        else write((char[]) {c,'\0'});      // write c 
 
         if(c == '\n'){                      // if Enter has been pressed
             str[i] = '\0';                  // add a string termination character
             return str;                     // return
         }
-        else{
-            str[i] = c;                     // store char in string
-            i++;
-        }
+        str[i] = c;                         // store char in string
+        i++;
+        
     }
     str[buffer_size - 1] = '\0';
     return str;

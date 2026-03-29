@@ -5,8 +5,12 @@
 
 #include "../address-map.h"
 #include "../Adafruit/gfxfont.h"
+#include <stdbool.h>
 
 #define FONT FreeMono9pt7b                   // global font when not specified otherwise
+
+const short int BLACK = 0x0000;
+const short int WHITE = 0xFFFF;
 
 int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
@@ -14,7 +18,7 @@ int CURSOR_X_DEFAULT;
 int CURSOR_Y_DEFAULT; 
 
 volatile int * pixel_ctrl_ptr;
-volatile int * pixel_buffer_start;              // global variable
+volatile int pixel_buffer_start;              // global variable
 short int Buffer1[240][512];                  // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
 
@@ -74,9 +78,6 @@ void draw_flag(int x, int y);
 
 
 const int NOTE_WIDTH = 7; // this many pixels
-
-const short int WHITE = 0xFFFF;
-const short int BLACK = 0x0000;
 const short int TOOLBAR_COLOR = 0x731F; // this is light purple right now
 
 const int VERT_MIN = 0;
@@ -91,7 +92,7 @@ volatile unsigned int *SW = (unsigned int*)SW_BASE;
 
 int staff_center; // set to middle of staff to calculate stem direction
 char note_type; // 'w' whole, 'h' half, 'q' quarter, 'e' eighth, 's' sixteenth
-
+bool note_drawn;
 
 int brace[36][5] = {
     {0,0,0,1,1},

@@ -258,32 +258,23 @@ const GFXfont FreeMono9pt7b = {(uint8_t *)FreeMono9pt7bBitmaps,
 
 // Approx. 1516 bytes
 
-
-
 /* VGA.c and VGA.h CONTENT */
 
 #define PIXEL_BUF_CTRL_BASE		0xFF203020
+#define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 const short int BLACK = 0x0000;
 const short int WHITE = 0xFFFF;
 
-
-int CURSOR_X;                                // arbitrary values for now
+int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
-
-int CURSOR_X_DEFAULT;                      
+int CURSOR_X_DEFAULT;
 int CURSOR_Y_DEFAULT;
-
-
-
-#define FONT FreeMono9pt7b                   // global font when not specified otherwise
-
 
 volatile int * pixel_ctrl_ptr;
 volatile int pixel_buffer_start;              // global variable
 short int Buffer1[240][512];                  // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
-
 
 
 
@@ -313,7 +304,6 @@ void background(short int color) {
 
 
 
-
 void VGA_init(){
     pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
 
@@ -336,9 +326,7 @@ void VGA_init(){
 }
 
 
-
-
-void draw_char(char c)
+void draw_char(char c, short int color)
 {
     const GFXfont *font = &FONT;
 
@@ -356,12 +344,11 @@ void draw_char(char c)
             uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
            
             if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
-                plot_pixel(gx + col, gy + row, WHITE);
+                plot_pixel(gx + col, gy + row, color);
             }
         }
     }
 }
-
 
 
 
@@ -380,14 +367,27 @@ void write(const char * str){
 
         if (c < font->first || c > font->last) continue;
         
-        draw_char(c);  
+        draw_char(c, WHITE);  
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c);  
+        draw_char(c, WHITE);  
 
         const GFXglyph *glyph  = &font->glyph[c - font->first];
         CURSOR_X += glyph->xAdvance;
     }
+}
+
+
+
+void delete_char(char c){
+    const GFXfont *font = &FONT;
+    const GFXglyph *glyph  = &font->glyph[c - font->first];
+    CURSOR_X -= glyph->xAdvance;
+
+    draw_char(c, BLACK);  
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+    draw_char(c, BLACK);  
 }
 
 
@@ -398,12 +398,12 @@ void write(const char * str){
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define PS2_BASE			0xFF200100
+#define PS2_BASE	0xFF200100
 
 volatile int * ps2_data_reg;
 volatile int * ps2_ctr_reg;
 
-bool break_code;  // true if F0 seen
+bool break_code;   // true if F0 seen
 bool extended;     // true if E0 seen
 bool shift;        // true if shift is currently pressed
 
@@ -417,7 +417,7 @@ void PS2_init(){
 
     break_code = false; 
     extended = false;  
-    shift = false; 
+    shift = false;       
 }
 
 
@@ -463,12 +463,11 @@ char keycode2ascii(int keycode, bool shift){
 
         case 0x29: return ' ';  // Space
         case 0x5A: return '\n'; // Enter
+        case 0x66: return '\b'; // Backspace
 
         default: return 0;
     }
 }
-
-
 
 
 char ps2_decoder(int keycode){
@@ -509,8 +508,6 @@ char ps2_decoder(int keycode){
 
 
 
-
-
 int get_keycode(){
     int RVALID = 0;
 	int PS2_data;
@@ -537,11 +534,6 @@ char get_char(){
 
 
 
-
-
-
-
-
 char * get_line(){
     int buffer_size = 20;
     char * str = malloc(buffer_size * sizeof(char));   // buffer for line
@@ -549,19 +541,25 @@ char * get_line(){
 
     while(i < buffer_size - 1){             // leave one char for the terminating character
         char c = get_char();                // get char from PS2 input
+        
+        if(c == 0) 
+            continue;                       // invalid scancode, no support yet, do nothing
 
-        if(c == 0) continue;                // invalid scancode, no support yet, do nothing
+        else if(c == '\b' && i > 0){        // delete the last character
+            i--;                            // go back in the str
+            delete_char(str[i]);
+            continue;
+        }
 
-        write((char[]) {c,'\0'});           // write c 
+        else write((char[]) {c,'\0'});      // write c 
 
         if(c == '\n'){                      // if Enter has been pressed
             str[i] = '\0';                  // add a string termination character
             return str;                     // return
         }
-        else{
-            str[i] = c;                     // store char in string
-            i++;
-        }
+        str[i] = c;                         // store char in string
+        i++;
+        
     }
     str[buffer_size - 1] = '\0';
     return str;
@@ -597,18 +595,23 @@ char * get_string(char ** line){
 
 
 
+
+
+
+
 /* database.c CONTENT */
 
 typedef struct Note {   
   char note; // C, D, E, F, G, A, B         
   int octave; // only support 4 and 5 right now (middle c ic C4)
   char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
+  struct Note * next;
 } Note;
 
 // this is a node in the linked list
 typedef struct Score {   
   char name[64];           
-  struct Note notes[64]; // this will just hold all of the notes in order   
+  struct Note* notes; // this will just hold all of the notes in order   
   struct Score* next;  
   int tempo;  
 } Score;
@@ -618,26 +621,81 @@ typedef struct ScoreList {
     struct Score* head; // start of list of all of the scores 
 } ScoreList;
 
+// ScoreList is a Linked List with Score as the node
+Score score2 = {
+    .name = "ode",
+    .next = NULL,
+    .notes = {
+      {'E', 4, 'q'},   
+      {'E', 4, 'q'},   
+      {'F', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'F', 4, 'q'},   
+      {'E', 4, 'q'},
+      {'D', 4, 'q'},
+      {'C', 4, 'q'},
+      {'C', 4, 'q'},
+      {'D', 4, 'q'},
+      {'E', 4, 'q'},
+      {'E', 4, 'h'},
+      {'D', 4, 'q'},
+      {'D', 4, 'h'},
+      {'\0', 0, '\0'}
+    }
+};
 
-
-
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-
-Score test_score = {"TestScore", {{'A', 4, 'w'},  {'G', 4, 'h'}}, NULL, 120}; 
+Score score1 = {
+    .name = "twinkle",
+    .next = &score2,
+    .notes = {
+      {'C', 4, 'q'},   
+      {'C', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'A', 4, 'q'},   
+      {'A', 4, 'q'},   
+      {'G', 4, 'h'},
+      {'F', 4, 'q'},
+      {'F', 4, 'q'},
+      {'E', 4, 'q'},
+      {'E', 4, 'q'},
+      {'D', 4, 'q'},
+      {'D', 4, 'q'},
+      {'C', 4, 'h'},
+      {'C', 4, 'q'},
+      {'D', 4, 'q'},
+      {'E', 4, 'q'},
+      {'F', 4, 'q'},
+      {'G', 4, 'q'},
+      {'A', 4, 'q'},
+      {'B', 4, 'q'},
+      {'C', 5, 'q'},
+      {'\0', 0, '\0'}
+    }
+};
 
 // ScoreList is a Linked List with Score as the node
-ScoreList scoreList = {&test_score};
+ScoreList scoreList = {&score1};
+
 int score_count = 0;
 
-int exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
+void add_note(Note * new_note, Score * scr){
+    Note * last_note = scr->notes;
+    while (last_note->next != NULL) {
+        last_note = last_note->next;
+    }
+    last_note->next = new_note;
+}
+
+
+bool exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
     // search through the linked list and check for the score name
-    int exist = 0;
+    bool exist = false;
     Score* current = scoreList.head;
     while (current != NULL) { 
         if (strcmp(current->name, name) == 0) { // returns 0 if strings are identical
-            exist = 1;
+            exist = true;
         }
         current = current->next;
     }
@@ -673,6 +731,7 @@ Score* add(char* name) {       // adds a score with name to the list
 
     Score* new_score = malloc(sizeof(Score));
     strcpy(new_score->name, name);
+    new_score->notes = NULL;
     new_score->next = NULL;
     new_score->tempo = 100;    // arbitrary default value
 
@@ -770,8 +829,9 @@ int terminal(){
             write("New score \'");
             write(name);
             write("\' added.\n");
-            //score(scr);
-            write("Pretend the score opened!\n");
+            // open score
+            // score(scr);
+            // write("Pretend the score opened!\n");
         }
 
         else if(strcmp(command, str_open) == 0){
@@ -786,8 +846,9 @@ int terminal(){
             write("Opening \'");
             write(name);
             write("\'...\n");
-            //score(scr);
-            write("Pretend the score opened!\n");
+            // open score
+            score(scr);
+            //write("Pretend the score opened!\n");
         }
 
         else if(strcmp(command, str_delete) == 0){
