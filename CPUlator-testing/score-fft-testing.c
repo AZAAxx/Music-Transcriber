@@ -1,3 +1,15 @@
+/*
+THE FOLLOWING IS JUST THE ADAFRUIT FILES, VGA, AND DRAWFONT.C FILE ALL PUT INTO THE FILE
+*/
+
+
+
+// Font structures for newer Adafruit_GFX (1.1 and later).
+// Example fonts are included in 'Fonts' directory.
+// To use a font in your Arduino sketch, #include the corresponding .h
+// file and pass address of GFXfont struct to setFont().  Pass NULL to
+// revert to 'classic' fixed-space bitmap font.
+
 #ifndef _GFXFONT_H_
 #define _GFXFONT_H_
 #include <stdint.h>
@@ -23,6 +35,48 @@ typedef struct {
 
 #endif // _GFXFONT_H_
 
+
+
+
+
+/*
+This is the core graphics library for all our displays, providing a common
+set of graphics primitives (points, lines, circles, etc.).  It needs to be
+paired with a hardware-specific library for each display device we carry
+(to handle the lower-level functions).
+
+Adafruit invests time and resources providing this open source code, please
+support Adafruit & open-source hardware by purchasing products from Adafruit!
+
+Copyright (c) 2013 Adafruit Industries.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+*/
+
+
+ /* 
+ WARNING: This file has been altered to fix some errors, refer to the 
+ Adafruit Github repository for the original version. 
+ */
 
 
 //#pragma once
@@ -204,22 +258,18 @@ const GFXfont FreeMono9pt7b = {(uint8_t *)FreeMono9pt7bBitmaps,
 
 // Approx. 1516 bytes
 
-
 /* VGA.c and VGA.h CONTENT */
 
 #define PIXEL_BUF_CTRL_BASE		0xFF203020
+#define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 const short int BLACK = 0x0000;
 const short int WHITE = 0xFFFF;
 
-
-int CURSOR_Y_DEFAULT;                      // arbitrary values for now
-int CURSOR_X_DEFAULT;
+int CURSOR_X;                                 // the values for the cursor baseline, the bottom left of the line
 int CURSOR_Y;
-int CURSOR_X;
-
-#define FONT FreeMono9pt7b                   // global font when not specified otherwise
-
+int CURSOR_X_DEFAULT;
+int CURSOR_Y_DEFAULT;
 
 volatile int * pixel_ctrl_ptr;
 volatile int pixel_buffer_start;              // global variable
@@ -233,11 +283,14 @@ void swap_buffers_on_vsync() {
     while (*(pixel_ctrl_ptr + 3) & 0x1);                // Wait until status.S turns 0
 }
 
+
+
 void plot_pixel(int x, int y, short int color) {
     volatile short int *one_pixel_address;
     one_pixel_address = (short int*) (pixel_buffer_start + (y << 10) + (x << 1));
     *one_pixel_address = color;
 }
+
 
 void background(short int color) {
 	for (int x = 0; x < 320; x++) {
@@ -247,6 +300,8 @@ void background(short int color) {
 	}
 	return;
 }
+
+
 
 void VGA_init(){
     pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
@@ -263,13 +318,14 @@ void VGA_init(){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
     background(BLACK); 
 
-    CURSOR_Y_DEFAULT = 50;                             // arbitrary values for now
+    CURSOR_Y_DEFAULT = 20;                             // arbitrary values for now
     CURSOR_X_DEFAULT = 10;
     CURSOR_Y = CURSOR_Y_DEFAULT;
     CURSOR_X = CURSOR_X_DEFAULT;
 }
 
-void draw_char(char c)
+
+void draw_char(char c, short int color)
 {
     const GFXfont *font = &FONT;
 
@@ -287,11 +343,13 @@ void draw_char(char c)
             uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
            
             if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
-                plot_pixel(gx + col, gy + row, WHITE);
+                plot_pixel(gx + col, gy + row, color);
             }
         }
     }
 }
+
+
 
 /* ONLY USE THIS FUNCTION TO WRITE STUFF */
 void write(const char * str){
@@ -308,27 +366,43 @@ void write(const char * str){
 
         if (c < font->first || c > font->last) continue;
         
-        draw_char(c);  
+        draw_char(c, WHITE);  
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c);  
+        draw_char(c, WHITE);  
 
         const GFXglyph *glyph  = &font->glyph[c - font->first];
         CURSOR_X += glyph->xAdvance;
     }
 }
 
+
+
+void delete_char(char c){
+    const GFXfont *font = &FONT;
+    const GFXglyph *glyph  = &font->glyph[c - font->first];
+    CURSOR_X -= glyph->xAdvance;
+
+    draw_char(c, BLACK);  
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+    draw_char(c, BLACK);  
+}
+
+
+
+
 /* PS2.c and PS2.h CONTENT */
 
-#include  <stdlib.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
-#define PS2_BASE			0xFF200100
+#define PS2_BASE	0xFF200100
 
 volatile int * ps2_data_reg;
 volatile int * ps2_ctr_reg;
 
-bool break_code;  // true if F0 seen
+bool break_code;   // true if F0 seen
 bool extended;     // true if E0 seen
 bool shift;        // true if shift is currently pressed
 
@@ -342,8 +416,9 @@ void PS2_init(){
 
     break_code = false; 
     extended = false;  
-    shift = false; 
+    shift = false;       
 }
+
 
 char keycode2ascii(int keycode, bool shift){
     switch (keycode) {
@@ -387,10 +462,12 @@ char keycode2ascii(int keycode, bool shift){
 
         case 0x29: return ' ';  // Space
         case 0x5A: return '\n'; // Enter
+        case 0x66: return '\b'; // Backspace
 
         default: return 0;
     }
 }
+
 
 char ps2_decoder(int keycode){
 
@@ -428,6 +505,8 @@ char ps2_decoder(int keycode){
     return c;   
 }
 
+
+
 int get_keycode(){
     int RVALID = 0;
 	int PS2_data;
@@ -440,6 +519,8 @@ int get_keycode(){
     } 
 }
 
+
+
 char get_char(){
 	char c = 0;
 	while (c == 0) {
@@ -450,6 +531,8 @@ char get_char(){
     return c;
 }
 
+
+
 char * get_line(){
     int buffer_size = 20;
     char * str = malloc(buffer_size * sizeof(char));   // buffer for line
@@ -457,23 +540,32 @@ char * get_line(){
 
     while(i < buffer_size - 1){             // leave one char for the terminating character
         char c = get_char();                // get char from PS2 input
+        
+        if(c == 0) 
+            continue;                       // invalid scancode, no support yet, do nothing
 
-        if(c == 0) continue;                // invalid scancode, no support yet, do nothing
+        else if(c == '\b' && i > 0){        // delete the last character
+            i--;                            // go back in the str
+            delete_char(str[i]);
+            continue;
+        }
 
-        write((char[]) {c,'\0'});           // write c 
+        else write((char[]) {c,'\0'});      // write c 
 
         if(c == '\n'){                      // if Enter has been pressed
             str[i] = '\0';                  // add a string termination character
             return str;                     // return
         }
-        else{
-            str[i] = c;                     // store char in string
-            i++;
-        }
+        str[i] = c;                         // store char in string
+        i++;
+        
     }
     str[buffer_size - 1] = '\0';
     return str;
 }
+
+
+
 
 // this function gets the first string from a char *
 char * get_string(char ** line){
@@ -499,20 +591,25 @@ char * get_string(char ** line){
     return str;
 }
 
+
+
+
+
 /* database.c CONTENT */
 
 typedef struct Note {   
-    char note;      // C, D, E, F, G, A, B         
-    int octave;     // only support 4 and 5 right now (middle c is C4)
-    char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
+  char note; // C, D, E, F, G, A, B         
+  int octave; // only support 4 and 5 right now (middle c ic C4)
+  char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
+  struct Note * next;
 } Note;
 
 // this is a node in the linked list
 typedef struct Score {   
-    char name[64];           
-    Note notes[64];         // fixed-size array, not a pointer
-    struct Score* next;  
-    int tempo;  
+  char name[64];           
+  struct Note* notes; // this will just hold all of the notes in order   
+  struct Score* next;  
+  int tempo;  
 } Score;
 
 // this is the linked list
@@ -520,115 +617,107 @@ typedef struct ScoreList {
     struct Score* head; // start of list of all of the scores 
 } ScoreList;
 
-
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-
 // ScoreList is a Linked List with Score as the node
 Score score2 = {
     .name = "ode",
-    .tempo = 120,
     .next = NULL,
     .notes = {
-        {'E', 4, 'q'},   
-        {'E', 4, 'q'},   
-        {'F', 4, 'q'},   
-        {'G', 4, 'q'},   
-        {'G', 4, 'q'},   
-        {'F', 4, 'q'},   
-        {'E', 4, 'q'},
-        {'D', 4, 'q'},
-        {'C', 4, 'q'},
-        {'C', 4, 'q'},
-        {'D', 4, 'q'},
-        {'E', 4, 'q'},
-        {'E', 4, 'h'},
-        {'D', 4, 'q'},
-        {'D', 4, 'h'},
-        {'\0', 0, '\0'}
+      {'E', 4, 'q'},   
+      {'E', 4, 'q'},   
+      {'F', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'F', 4, 'q'},   
+      {'E', 4, 'q'},
+      {'D', 4, 'q'},
+      {'C', 4, 'q'},
+      {'C', 4, 'q'},
+      {'D', 4, 'q'},
+      {'E', 4, 'q'},
+      {'E', 4, 'h'},
+      {'D', 4, 'q'},
+      {'D', 4, 'h'},
+      {'\0', 0, '\0'}
     }
 };
 
 Score score1 = {
     .name = "twinkle",
-    .tempo = 120,
     .next = &score2,
     .notes = {
-        {'C', 4, 'q'},   
-        {'C', 4, 'q'},   
-        {'G', 4, 'q'},   
-        {'G', 4, 'q'},   
-        {'A', 4, 'q'},   
-        {'A', 4, 'q'},   
-        {'G', 4, 'h'},
-        {'F', 4, 'q'},
-        {'F', 4, 'q'},
-        {'E', 4, 'q'},
-        {'E', 4, 'q'},
-        {'D', 4, 'q'},
-        {'D', 4, 'q'},
-        {'C', 4, 'h'},
-        {'C', 4, 'q'},
-        {'D', 4, 'q'},
-        {'E', 4, 'q'},
-        {'F', 4, 'q'},
-        {'G', 4, 'q'},
-        {'A', 4, 'q'},
-        {'B', 4, 'q'},
-        {'C', 5, 'q'},
-        {'\0', 0, '\0'}
+      {'C', 4, 'q'},   
+      {'C', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'A', 4, 'q'},   
+      {'A', 4, 'q'},   
+      {'G', 4, 'h'},
+      {'F', 4, 'q'},
+      {'F', 4, 'q'},
+      {'E', 4, 'q'},
+      {'E', 4, 'q'},
+      {'D', 4, 'q'},
+      {'D', 4, 'q'},
+      {'C', 4, 'h'},
+      {'C', 4, 'q'},
+      {'D', 4, 'q'},
+      {'E', 4, 'q'},
+      {'F', 4, 'q'},
+      {'G', 4, 'q'},
+      {'A', 4, 'q'},
+      {'B', 4, 'q'},
+      {'C', 5, 'q'},
+      {'\0', 0, '\0'}
     }
 };
 
-// field order: name, notes, next, tempo
-Score test_score = {
-    .name = "TestScore",
-    .tempo = 120,
-    .next = &score1,
-    .notes = {
-        {'A', 4, 'w'},
-        {'G', 4, 'h'},
-        {'\0', 0, '\0'}
+// ScoreList is a Linked List with Score as the node
+ScoreList scoreList = {&score1};
+
+int score_count = 0;
+
+void add_note(Note * new_note, Score * scr){
+    Note * last_note = scr->notes;
+    while (last_note->next != NULL) {
+        last_note = last_note->next;
     }
-};
-
-
-ScoreList scoreList = {&test_score};
-int score_count = 3;   // test_score, score1, score2
-
-void add_note(Note* new_note, Score* scr) {
-    for (int i = 0; i < 63; i++) {
-        if (scr->notes[i].note == '\0') {
-            scr->notes[i] = *new_note;
-            scr->notes[i + 1] = (Note){'\0', 0, '\0'};
-            return;
-        }
-    }
-    // array is full, do nothing
+    last_note->next = new_note;
 }
 
-bool exists(char* name) {             // returns true if a score with name already exists
+
+bool exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
+    // search through the linked list and check for the score name
+    bool exist = false;
     Score* current = scoreList.head;
     while (current != NULL) { 
-        if (strcmp(current->name, name) == 0)
-            return true;
+        if (strcmp(current->name, name) == 0) { // returns 0 if strings are identical
+            exist = true;
+        }
         current = current->next;
     }
-    return false;
+    return exist;
 }
 
 Score* find(char* name) {      // returns a pointer to the score if it exists
+    // search through the whole list, check the names
+    Score* found = NULL;
+    // doesn't exist
+    if (exists(name) == 0) return found;
+
     Score* current = scoreList.head;
-    while (current != NULL) {
-        if (strcmp(current->name, name) == 0)
-            return current;
+    while(current != NULL) {
+        if ((strcmp(current->name, name) == 0)) {
+            found = current;
+            break;
+        }
         current = current->next;
-    }
-    return NULL;
+    } 
+    
+    return found;
 }
 
 Score* add(char* name) {       // adds a score with name to the list
+    // put newest score at the very end
     Score* current = scoreList.head;
     Score* prev = NULL;
     while (current != NULL) {
@@ -638,48 +727,57 @@ Score* add(char* name) {       // adds a score with name to the list
 
     Score* new_score = malloc(sizeof(Score));
     strcpy(new_score->name, name);
+    new_score->notes = NULL;
     new_score->next = NULL;
     new_score->tempo = 100;    // arbitrary default value
-    new_score->notes[0] = (Note){'\0', 0, '\0'};  // empty notes array
 
     if (prev == NULL) scoreList.head = new_score;
-    else              prev->next = new_score;
+    if (prev != NULL) prev->next = new_score;
 
     score_count++;
     return new_score;
 }
 
 void delete(char* name) {       // deletes the score from the list
+    // delete the score with the name specified
     Score* current = scoreList.head;
     Score* prev = NULL;
+    // doesn't exist
+    if (exists(name) == 0) return;
 
-    if (!exists(name)) return;
-
+    // exists
     score_count--;
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
-            if (prev == NULL)
-                scoreList.head = current->next;
-            else
+            // last score in multi-score list
+            if (prev == NULL) {
+                scoreList.head = current->next; // removing the head
+            } else {
                 prev->next = current->next;
+            }
             free(current);
             return;
         }
         prev = current;
-        current = current->next;
+        current = current-> next;
     }
+
+    return;
 }
 
 char* get_scores() {                  // returns the names of all the scores
+    // go through each score return names of all scores
     Score* current = scoreList.head;
+    // empty aka no scores in list
     if (current == NULL) return NULL;
 
-    char* all_names = malloc(score_count * 100 * sizeof(char));
+    char* all_names = malloc(score_count*100 * sizeof(char));
     all_names[0] = '\0';
 
+    // not empty list
     while (current != NULL) {
-        strcat(all_names, current->name);
-        strcat(all_names, "\n");
+        strcat(all_names, current->name); // adds the name of the current score to the string
+        strcat(all_names, "\n"); // for the space between the scores (4 spaces)
         current = current->next;
     }
     return all_names;
@@ -1490,16 +1588,114 @@ int terminal(){
 }
 
 /* fft.c CONTENT */
-#include <complex.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
-
+#define f_s 8000
+#define PI 3.1415926535
 
 // NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, 
 // writing iterative FFT, or using one array for all a, a0, a1 memory
 
 
+
+// Frequencies (Hz)
+const double frequencies[] = {
+    // C0 - B0
+    16.35, 17.32, 18.35, 19.45, 20.60, 21.83, 23.12, 24.50, 25.96, 27.50, 29.14, 30.87,
+
+    // C1 - B1
+    32.70, 34.65, 36.71, 38.89, 41.20, 43.65, 46.25, 49.00, 51.91, 55.00, 58.27, 61.74,
+
+    // C2 - B2
+    65.41, 69.30, 73.42, 77.78, 82.41, 87.31, 92.50, 98.00, 103.83, 110.00, 116.54, 123.47,
+
+    // C3 - B3
+    130.81, 138.59, 146.83, 155.56, 164.81, 174.61, 185.00, 196.00, 207.65, 220.00, 233.08, 246.94,
+
+    // C4 - B4
+    261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88,
+
+    // C5 - B5
+    523.25, 554.37, 587.33, 622.25, 659.25, 698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77,
+
+    // C6 - B6
+    1046.50, 1108.73, 1174.66, 1244.51, 1318.51, 1396.91, 1479.98, 1567.98, 1661.22, 1760.00, 1864.66, 1975.53,
+
+    // C7 - B7
+    2093.00, 2217.46, 2349.32, 2489.02, 2637.02, 2793.83, 2959.96, 3135.96, 3322.44, 3520.00, 3729.31, 3951.07,
+
+    // C8 - B8
+    4186.01, 4434.92, 4698.63, 4978.03, 5274.04, 5587.65, 5919.91, 6271.93, 6644.88, 7040.00, 7458.62, 7902.13
+};
+
+
+
+// Note names
+const char *notes[] = {
+    // C0 - B0
+    "C0","C#0","D0","D#0","E0","F0","F#0","G0","G#0","A0","A#0","B0",
+
+    // C1 - B1
+    "C1","C#1","D1","D#1","E1","F1","F#1","G1","G#1","A1","A#1","B1",
+
+    // C2 - B2
+    "C2","C#2","D2","D#2","E2","F2","F#2","G2","G#2","A2","A#2","B2",
+
+    // C3 - B3
+    "C3","C#3","D3","D#3","E3","F3","F#3","G3","G#3","A3","A#3","B3",
+
+    // C4 - B4
+    "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4",
+
+    // C5 - B5
+    "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5",
+
+    // C6 - B6
+    "C6","C#6","D6","D#6","E6","F6","F#6","G6","G#6","A6","A#6","B6",
+
+    // C7 - B7
+    "C7","C#7","D7","D#7","E7","F7","F#7","G7","G#7","A7","A#7","B7",
+
+    // C8 - B8
+    "C8","C#8","D8","D#8","E8","F8","F#8","G8","G#8","A8","A#8","B8"
+};
+
+
+int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
+
+
+
+typedef struct Complex{
+    double real;
+    double im;
+} Complex ;
+
+
+Complex z_mult(Complex z1, Complex z2) {
+    return (Complex){
+        .real = (z1.real * z2.real) - (z1.im * z2.im),
+        .im   = (z1.real * z2.im)   + (z1.im * z2.real)
+    };
+}
+
+Complex z_add(Complex z1, Complex z2) {
+    return (Complex){
+        .real = z1.real + z2.real,
+        .im   = z1.im   + z2.im
+    };
+}
+
+Complex z_sub(Complex z1, Complex z2) {
+    return (Complex){
+        .real = z1.real - z2.real,
+        .im   = z1.im   - z2.im
+    };
+}
+
+Complex z_scale(Complex z, double s) {
+    return (Complex){ .real = z.real / s, .im = z.im / s };
+}
 
 
 
@@ -1510,23 +1706,25 @@ int next_pow2(int n) {
 }
 
 
-double complex * format_input(int * audio_input, int audio_size){
+Complex * format_input(int * audio_input, int audio_size){
     // copy the array A into array a of size 2^exp = n
     int n = next_pow2(audio_size);                             
-    double complex * a = malloc(n * sizeof(double complex));
+    Complex * a = malloc(n * sizeof(Complex));
     for(int i=0; i<n; i++) {
-        if(i < audio_size) a[i] = CMPLX(audio_input[i], 0);
-        else a[i] = 0;
+        if(i < audio_size) a[i] = (Complex){audio_input[i], 0};
+        else a[i] = (Complex){0, 0};
     }
     return a;
 }
 
 
 
-double * format_result(complex double * a, int n){
+double * format_result(Complex * a, int n){
     double * bins = malloc(n * sizeof(double));
-    for(int i = 0; i < n; i++)
-        bins[i] = (double) 2 * cabs(a[i]) / n;
+    for(int i = 0; i < n; i++){
+        Complex z = a[i];
+        bins[i] = (double) 2 * (z.real * z.real + z.im * z.im) / n;
+    }
     return bins;
 }
 
@@ -1535,13 +1733,13 @@ double * format_result(complex double * a, int n){
 
 
 // Main source: https://cp-algorithms.com/algebra/fft.html
-void fft(double complex * a, int n, bool inverse) {
+void fft(Complex * a, int n, bool inverse) {
     if (n == 1)
         return;
 
 
-    double complex *a0 = malloc(n/2 * sizeof(double complex));
-    double complex *a1 = malloc(n/2 * sizeof(double complex));
+    Complex *a0 = malloc(n/2 * sizeof(Complex));
+    Complex *a1 = malloc(n/2 * sizeof(Complex));
 
     for (int i = 0; 2 * i < n; i++) {
         a0[i] = a[2*i];
@@ -1552,23 +1750,24 @@ void fft(double complex * a, int n, bool inverse) {
 
     double ang = 2 * PI / n * (inverse ? -1 : 1);
 
-    double complex w = CMPLX(1, 0);
-    double complex wn = CMPLX(cos(ang), sin(ang));
+    Complex w = {1, 0};
+    Complex wn = {cos(ang), sin(ang)};
 
     for (int i = 0; 2 * i < n; i++) {
-        a[i] = a0[i] + w * a1[i];
-        a[i + n/2] = a0[i] - w * a1[i];
+        //a[i] = a0[i] + w * a1[i];
+        a[i] = z_add(a0[i], z_mult(w, a1[i]));
+        //a[i + n/2] = a0[i] - w * a1[i];
+        a[i + n/2] = z_sub(a0[i], z_mult(w, a1[i]));
         if (inverse) {
-            a[i] /= 2;
-            a[i + n/2] /= 2;
+            a[i] = z_scale(a[i], 2);                // scaling divides by the number
+            a[i + n/2] = z_scale(a[i + n/2], 2);
         }
-        w *= wn;
+        w = z_mult(w, wn);
     }
 
     free(a0);
     free(a1);
 }
-
 
 
 
@@ -1607,7 +1806,7 @@ char * get_fft_result(int * audio_input, int audio_size){
 
     int n = next_pow2(audio_size);
 
-    complex double * a = format_input(audio_input, audio_size);
+    Complex * a = format_input(audio_input, audio_size);
     fft(a, n, 0);
 
     double * bins = format_result(a, n);

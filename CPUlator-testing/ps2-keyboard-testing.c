@@ -277,13 +277,6 @@ short int Buffer1[240][512];                  // 240 rows, 512 (320 + padding) c
 short int Buffer2[240][512];
 
 
-volatile int * pixel_ctrl_ptr;
-volatile int pixel_buffer_start;              // global variable
-short int Buffer1[240][512];                  // 240 rows, 512 (320 + padding) columns
-short int Buffer2[240][512];
-
-
-
 void swap_buffers_on_vsync() {
     pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
     *pixel_ctrl_ptr = 1;                                // write 1 into the buffer reg to request a swap
