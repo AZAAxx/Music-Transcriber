@@ -1,4 +1,4 @@
-#include "source/terminal.h"
+#include "terminal.h"
 
 
 int main(){

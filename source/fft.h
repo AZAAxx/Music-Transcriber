@@ -1,7 +1,6 @@
 #ifndef __FFT__
 #define __FFT__
 
-#include <complex.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
@@ -9,6 +8,22 @@
 
 #define f_s 8000
 #define PI 3.1415926535
+
+
+typedef struct Complex{
+    double real;
+    double im;
+} Complex ;
+
+
+Complex z_mult(Complex z1, Complex z2);
+
+Complex z_add(Complex z1, Complex z2);
+
+Complex z_sub(Complex z1, Complex z2);
+
+Complex z_scale(Complex z, double s);
+
 
 
 // Frequencies (Hz)
@@ -81,13 +96,13 @@ int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
 int next_pow2(int n);       
 
 // formats the input to turn the type to complex double and reallocate array to size next_pow2()
-double complex * format_input(int * audio_input, int audio_size);         
+Complex * format_input(int * audio_input, int audio_size);         
 
 // formats the result to turn the type to double and scales by 1/n
-double * format_result(double complex * a, int n);
+double * format_result(Complex * a, int n);
 
 // computes the fft, array a is changed to be the result
-void fft(double complex * a, int n, bool inverse);
+void fft(Complex * a, int n, bool inverse);
 
 // returns the note in a string that has the biggest frequency component
 char * find_note(double * bins, int n);

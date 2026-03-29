@@ -40,8 +40,8 @@ void draw_char(char c, short int color);
 // USE THIS: writes a string at (CURSOR_X, CURSOR_Y), updates the cursor position
 void write(const char *str);
 
-// deletes the last character c
-void delete(char c);
+// USE THIS: deletes the last character c
+void delete_char(char c);
 
 
 /* Functions used for score.c */
@@ -92,18 +92,6 @@ volatile unsigned int *SW = (unsigned int*)SW_BASE;
 int staff_center; // set to middle of staff to calculate stem direction
 char note_type; // 'w' whole, 'h' half, 'q' quarter, 'e' eighth, 's' sixteenth
 
-int* whole_note;         //each int* below should be a list of delta_x, delta_y values from a center that will be colored 
-int* half_note;
-int* quarter_note;
-int* eighth_note;
-int* sixteenth_note;
-
-int* toolbar;
-int* staff;
-int* barline;
-
-int* treble_cleff;
-int* bass_cleff;
 
 int brace[36][5] = {
     {0,0,0,1,1},

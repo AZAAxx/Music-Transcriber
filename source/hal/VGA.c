@@ -106,7 +106,7 @@ void write(const char * str){
 
 
 
-void delete(char c){
+void delete_char(char c){
     const GFXfont *font = &FONT;
     const GFXglyph *glyph  = &font->glyph[c - font->first];
     CURSOR_X -= glyph->xAdvance;

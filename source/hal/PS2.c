@@ -148,7 +148,7 @@ char * get_line(){
 
         else if(c == '\b' && i > 0){        // delete the last character
             i--;                            // go back in the str
-            delete(str[i]);
+            delete_char(str[i]);
             continue;
         }
 

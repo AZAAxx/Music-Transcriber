@@ -1,4 +1,3 @@
-#include <complex.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
@@ -12,6 +11,33 @@
 
 
 
+Complex z_mult(Complex z1, Complex z2) {
+    return (Complex){
+        .real = (z1.real * z2.real) - (z1.im * z2.im),
+        .im   = (z1.real * z2.im)   + (z1.im * z2.real)
+    };
+}
+
+Complex z_add(Complex z1, Complex z2) {
+    return (Complex){
+        .real = z1.real + z2.real,
+        .im   = z1.im   + z2.im
+    };
+}
+
+Complex z_sub(Complex z1, Complex z2) {
+    return (Complex){
+        .real = z1.real - z2.real,
+        .im   = z1.im   - z2.im
+    };
+}
+
+Complex z_scale(Complex z, double s) {
+    return (Complex){ .real = z.real / s, .im = z.im / s };
+}
+
+
+
 int next_pow2(int n) {
     int p = 1;
     while (p < n) p <<= 1;
@@ -19,23 +45,25 @@ int next_pow2(int n) {
 }
 
 
-double complex * format_input(int * audio_input, int audio_size){
+Complex * format_input(int * audio_input, int audio_size){
     // copy the array A into array a of size 2^exp = n
     int n = next_pow2(audio_size);                             
-    double complex * a = malloc(n * sizeof(double complex));
+    Complex * a = malloc(n * sizeof(Complex));
     for(int i=0; i<n; i++) {
-        if(i < audio_size) a[i] = CMPLX(audio_input[i], 0);
-        else a[i] = 0;
+        if(i < audio_size) a[i] = (Complex){audio_input[i], 0};
+        else a[i] = (Complex){0, 0};
     }
     return a;
 }
 
 
 
-double * format_result(complex double * a, int n){
+double * format_result(Complex * a, int n){
     double * bins = malloc(n * sizeof(double));
-    for(int i = 0; i < n; i++)
-        bins[i] = (double) 2 * cabs(a[i]) / n;
+    for(int i = 0; i < n; i++){
+        Complex z = a[i];
+        bins[i] = (double) 2 * (z.real * z.real + z.im * z.im) / n;
+    }
     return bins;
 }
 
@@ -44,13 +72,13 @@ double * format_result(complex double * a, int n){
 
 
 // Main source: https://cp-algorithms.com/algebra/fft.html
-void fft(double complex * a, int n, bool inverse) {
+void fft(Complex * a, int n, bool inverse) {
     if (n == 1)
         return;
 
 
-    double complex *a0 = malloc(n/2 * sizeof(double complex));
-    double complex *a1 = malloc(n/2 * sizeof(double complex));
+    Complex *a0 = malloc(n/2 * sizeof(Complex));
+    Complex *a1 = malloc(n/2 * sizeof(Complex));
 
     for (int i = 0; 2 * i < n; i++) {
         a0[i] = a[2*i];
@@ -61,17 +89,19 @@ void fft(double complex * a, int n, bool inverse) {
 
     double ang = 2 * PI / n * (inverse ? -1 : 1);
 
-    double complex w = CMPLX(1, 0);
-    double complex wn = CMPLX(cos(ang), sin(ang));
+    Complex w = {1, 0};
+    Complex wn = {cos(ang), sin(ang)};
 
     for (int i = 0; 2 * i < n; i++) {
-        a[i] = a0[i] + w * a1[i];
-        a[i + n/2] = a0[i] - w * a1[i];
+        //a[i] = a0[i] + w * a1[i];
+        a[i] = z_add(a0[i], z_mult(w, a1[i]));
+        //a[i + n/2] = a0[i] - w * a1[i];
+        a[i + n/2] = z_sub(a0[i], z_mult(w, a1[i]));
         if (inverse) {
-            a[i] /= 2;
-            a[i + n/2] /= 2;
+            a[i] = z_scale(a[i], 2);                // scaling divides by the number
+            a[i + n/2] = z_scale(a[i + n/2], 2);
         }
-        w *= wn;
+        w = z_mult(w, wn);
     }
 
     free(a0);
@@ -116,7 +146,7 @@ char * get_fft_result(int * audio_input, int audio_size){
 
     int n = next_pow2(audio_size);
 
-    complex double * a = format_input(audio_input, audio_size);
+    Complex * a = format_input(audio_input, audio_size);
     fft(a, n, 0);
 
     double * bins = format_result(a, n);

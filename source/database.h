@@ -25,12 +25,63 @@ typedef struct ScoreList {
     struct Score* head; // start of list of all of the scores 
 } ScoreList;
 
+// ScoreList is a Linked List with Score as the node
+Score score2 = {
+    .name = "ode",
+    .next = NULL,
+    .notes = {
+      {'E', 4, 'q'},   
+      {'E', 4, 'q'},   
+      {'F', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'F', 4, 'q'},   
+      {'E', 4, 'q'},
+      {'D', 4, 'q'},
+      {'C', 4, 'q'},
+      {'C', 4, 'q'},
+      {'D', 4, 'q'},
+      {'E', 4, 'q'},
+      {'E', 4, 'h'},
+      {'D', 4, 'q'},
+      {'D', 4, 'h'},
+      {'\0', 0, '\0'}
+    }
+};
 
-
-Score test_score = {"TestScore", {{'A', 4, 'w'},  {'G', 4, 'h'}}, NULL, 120}; 
+Score score1 = {
+    .name = "twinkle",
+    .next = &score2,
+    .notes = {
+      {'C', 4, 'q'},   
+      {'C', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'G', 4, 'q'},   
+      {'A', 4, 'q'},   
+      {'A', 4, 'q'},   
+      {'G', 4, 'h'},
+      {'F', 4, 'q'},
+      {'F', 4, 'q'},
+      {'E', 4, 'q'},
+      {'E', 4, 'q'},
+      {'D', 4, 'q'},
+      {'D', 4, 'q'},
+      {'C', 4, 'h'},
+      {'C', 4, 'q'},
+      {'D', 4, 'q'},
+      {'E', 4, 'q'},
+      {'F', 4, 'q'},
+      {'G', 4, 'q'},
+      {'A', 4, 'q'},
+      {'B', 4, 'q'},
+      {'C', 5, 'q'},
+      {'\0', 0, '\0'}
+    }
+};
 
 // ScoreList is a Linked List with Score as the node
-ScoreList scoreList = {&test_score};
+ScoreList scoreList = {&score1};
+
 int score_count = 0;
 
 // adds new_note to the Score member notes

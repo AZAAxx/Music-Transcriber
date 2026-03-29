@@ -1,7 +1,7 @@
 #ifndef __AUDIO__
 #define __AUDIO__
 
-#include "database.h"
+#include "../database.h"
 
 #define f_s 8000
 #define PI 3.1415926535

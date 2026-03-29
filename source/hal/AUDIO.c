@@ -3,6 +3,7 @@
 #include "../database.h"
 #include <math.h>
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 void AUDIO_init(){
     volatile int * audio_ptr = AUDIO_BASE;
@@ -125,7 +126,7 @@ void analyze_audio_continuous(struct Score * scr){
                 right = *(AUDIO_BASE + 2);
                 left = *(AUDIO_BASE + 3);
 
-                int voltage = fmax(right, left);   // get fmax to make it more foolproof
+                int voltage = MAX(right, left);   // get fmax to make it more foolproof
                 audio_input[k] = voltage;          // save it in array
                 k++;
             }
