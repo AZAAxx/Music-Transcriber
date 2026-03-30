@@ -1,3 +1,5 @@
+ece243 project
+
 // Font structures for newer Adafruit_GFX (1.1 and later).
 // Example fonts are included in 'Fonts' directory.
 // To use a font in your Arduino sketch, #include the corresponding .h
@@ -553,7 +555,6 @@ typedef struct Note {
   char note; // C, D, E, F, G, A, B
   int octave; // only support 4 and 5 right now (middle c is C4)
   char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
-  bool is_sharp;
   struct Note * next;
 } Note;
 
@@ -572,63 +573,63 @@ typedef struct ScoreList {
 
 // testing random notes
 static Note score3_notes[] = {
-    {'C', 4, 'w', true, &score3_notes[1]},
-    {'D', 4, 'h', true, &score3_notes[2]},
-    {'E', 4, 'q', false, &score3_notes[3]},
-    {'F', 4, 'e', true, &score3_notes[4]},
-    {'G', 4, 's', true, &score3_notes[5]},
-    {'A', 5, 'w', true, &score3_notes[6]},
-    {'B', 5, 'h', false, &score3_notes[7]},
-    {'C', 5, 'q', true, &score3_notes[8]},
-    {'D', 5, 'e', true, &score3_notes[9]},
-    {'E', 5, 's', false, NULL},
-    {'\0', 0, '\0', false, NULL}
+    {'C', 4, 'w', NULL},
+    {'C', 4, 'h', NULL},
+    {'C', 4, 'q', NULL},
+    {'C', 4, 'e', NULL},
+    {'C', 4, 's', NULL},
+    {'C', 5, 'w', NULL},
+    {'C', 5, 'h', NULL},
+    {'C', 5, 'q', NULL},
+    {'C', 5, 'e', NULL},
+    {'C', 5, 's', NULL},
+    {'\0', 0, '\0', NULL}
 };
 
 // ode to joy
 static Note score2_notes[] = {
-    {'E', 4, 'q', false, &score2_notes[1]},
-    {'E', 4, 'q', false, &score2_notes[2]},
-    {'F', 4, 'q', false, &score2_notes[3]},
-    {'G', 4, 'q', false, &score2_notes[4]},
-    {'G', 4, 'q', false, &score2_notes[5]},
-    {'F', 4, 'q', false, &score2_notes[6]},
-    {'E', 4, 'q', false, &score2_notes[7]},
-    {'D', 4, 'q', false, &score2_notes[8]},
-    {'C', 4, 'q', false, &score2_notes[9]},
-    {'C', 4, 'q', false, &score2_notes[10]},
-    {'D', 4, 'q', false, &score2_notes[11]},
-    {'E', 4, 'q', false, &score2_notes[12]},
-    {'E', 4, 'h', false, &score2_notes[13]},
-    {'D', 4, 'e', false, &score2_notes[14]},
-    {'D', 4, 'h', false, NULL},
-    {'\0', 0, '\0', false, NULL}
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'C', 4, 'q', NULL},
+    {'C', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'h', NULL},
+    {'D', 4, 'e', NULL},
+    {'D', 4, 'h', NULL},
+    {'\0', 0, '\0', NULL}
 };
 
 // twinkle twinkle
 static Note score1_notes[] = {
-    {'C', 4, 'q', false, &score1_notes[1]},
-    {'C', 4, 'q', false, &score1_notes[2]},
-    {'G', 4, 'q', false, &score1_notes[3]},
-    {'G', 4, 'q', false, &score1_notes[4]},
-    {'A', 4, 'q', false, &score1_notes[5]},
-    {'A', 4, 'q', false, &score1_notes[6]},
-    {'G', 4, 'h', false, &score1_notes[7]},
-    {'F', 4, 'q', false, &score1_notes[8]},
-    {'F', 4, 'q', false, &score1_notes[9]},
-    {'E', 4, 'q', false, &score1_notes[10]},
-    {'E', 4, 'q', false, &score1_notes[11]},
-    {'D', 4, 'q', false, &score1_notes[12]},
-    {'D', 4, 'q', false, &score1_notes[13]},
-    {'C', 4, 'h', false, &score1_notes[14]},
-    {'G', 4, 'q', false, &score1_notes[15]},
-    {'G', 4, 'q', false, &score1_notes[16]},
-    {'F', 4, 'q', false, &score1_notes[17]},
-    {'F', 4, 'q', false, &score1_notes[18]},
-    {'E', 4, 'q', false, &score1_notes[19]},
-    {'E', 4, 'q', false, &score1_notes[20]},
-    {'D', 4, 'h', false, NULL},
-    {'\0', 0, '\0', false, NULL}
+    {'C', 4, 'q', NULL},
+    {'C', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'A', 4, 'q', NULL},
+    {'A', 4, 'q', NULL},
+    {'G', 4, 'h', NULL},
+    {'F', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'C', 4, 'h', NULL},
+    {'G', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'D', 4, 'h', NULL},
+    {'\0', 0, '\0', NULL}
 };
 
 Score score3 = {
@@ -1018,8 +1019,6 @@ void draw_brace(int x, int y);
 void draw_treble_clef(int x, int y);
 void draw_bar_line(int x_center, int y_center);
 void draw_flag(int x, int y);
-void draw_sharp(int x_center, int y_center);
-void draw_flat(int x_center, int y_center);
 void draw_score(Score* score);
 void play_score(Score* score);
 int terminal();
@@ -1224,25 +1223,7 @@ void draw_flag(int x, int y) {
     }
 }
 
-void draw_sharp(int x, int y) {
-    for (int i = 0; i < 12; i++) {
-        for (int j = 0; j < 8; j++) {
-            if (sharp[i][j] == 1) {
-                plot_pixel(x + j, y + i, BLACK);
-            }
-        }
-    }
-}
 
-void draw_flat(int x, int y) {
-    for (int i = 0; i < 12; i++) {
-        for (int j = 0; j < 8; j++) {
-            if (flat[i][j] == 1) {
-                plot_pixel(x + j, y + i, BLACK);
-            }
-        }
-    }
-}
 
 /* score.c CONTENT*/
 
@@ -1337,7 +1318,6 @@ void draw_score(Score* score){
         char duration = current_note->duration;
         char pitch = current_note->note;
         int octave = current_note->octave;
-        bool is_sharp = current_note->is_sharp;
 
         if (pitch == '\0') break;
 
@@ -1403,18 +1383,7 @@ void draw_score(Score* score){
                 else if ((pitch == 'B') && (octave == 3)) {
                     draw_ledger_line(current_hor, current_vert - 5);
                 }
-                else if ((pitch == 'A') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
-                else if ((pitch == 'B') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert + 5);
-                }
-                else if ((pitch == 'C') && (octave == 6)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
             }
-
-            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
                 
             if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
             else if (note_type == 'h') draw_half_note(current_hor, current_vert);
@@ -1434,18 +1403,7 @@ void draw_score(Score* score){
                 else if ((pitch == 'B') && (octave == 3)) {
                     draw_ledger_line(current_hor, current_vert - 5);
                 }
-                else if ((pitch == 'A') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
-                else if ((pitch == 'B') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert + 5);
-                }
-                else if ((pitch == 'C') && (octave == 6)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
             }
-
-            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
 
             if (note_type == 'w') {
                 draw_whole_note(current_hor, current_vert);
@@ -1485,7 +1443,6 @@ void play_score(Score* score){
         double dur = 0.0;
         int bpm = score->tempo;
         double secs_per_beat = 60.0 / ((double) bpm);
-        bool is_sharp = current_note->is_sharp;
 
         if (pitch == '\0') break;
 
@@ -1496,32 +1453,22 @@ void play_score(Score* score){
             else if (duration == 'e') dur = secs_per_beat / 2;
             else if (duration == 's') dur = secs_per_beat / 4;
 
-        if      ((pitch == 'C') && (octave == 4) && !is_sharp) frequency = 261.63;
-        else if ((pitch == 'C') && (octave == 4) && is_sharp)  frequency = 277.18; 
-        else if ((pitch == 'D') && (octave == 4) && !is_sharp) frequency = 293.66;
-        else if ((pitch == 'D') && (octave == 4) && is_sharp)  frequency = 311.13;
-        else if ((pitch == 'E') && (octave == 4))              frequency = 329.63;
-        else if ((pitch == 'F') && (octave == 4) && !is_sharp) frequency = 349.23;
-        else if ((pitch == 'F') && (octave == 4) && is_sharp)  frequency = 369.99;
-        else if ((pitch == 'G') && (octave == 4) && !is_sharp) frequency = 392.00;
-        else if ((pitch == 'G') && (octave == 4) && is_sharp)  frequency = 415.30;
-        else if ((pitch == 'A') && (octave == 4) && !is_sharp) frequency = 440.00;
-        else if ((pitch == 'A') && (octave == 4) && is_sharp)  frequency = 466.16;
-        else if ((pitch == 'B') && (octave == 4))              frequency = 493.88;
-        else if ((pitch == 'C') && (octave == 5) && !is_sharp) frequency = 523.25;
-        else if ((pitch == 'C') && (octave == 5) && is_sharp)  frequency = 554.37;
-        else if ((pitch == 'D') && (octave == 5) && !is_sharp) frequency = 587.33;
-        else if ((pitch == 'D') && (octave == 5) && is_sharp)  frequency = 622.25;
-        else if ((pitch == 'E') && (octave == 5))              frequency = 659.25;
-        else if ((pitch == 'F') && (octave == 5) && !is_sharp) frequency = 698.46;
-        else if ((pitch == 'F') && (octave == 5) && is_sharp)  frequency = 739.99;
-        else if ((pitch == 'G') && (octave == 5) && !is_sharp) frequency = 783.99;
-        else if ((pitch == 'G') && (octave == 5) && is_sharp)  frequency = 830.61;
-        else if ((pitch == 'A') && (octave == 5) && !is_sharp) frequency = 880.00;
-        else if ((pitch == 'A') && (octave == 5) && is_sharp)  frequency = 932.33;
-        else if ((pitch == 'B') && (octave == 5))              frequency = 987.77;
-        else if ((pitch == 'C') && (octave == 6))              frequency = 1046.50;
-        else if ((pitch == 'B') && (octave == 3))              frequency = 246.94;
+            if      ((pitch == 'C') && (octave == 4)) frequency = 261.63;
+            else if ((pitch == 'D') && (octave == 4)) frequency = 293.66;
+            else if ((pitch == 'E') && (octave == 4)) frequency = 329.63;
+            else if ((pitch == 'F') && (octave == 4)) frequency = 349.23;
+            else if ((pitch == 'G') && (octave == 4)) frequency = 392.00;
+            else if ((pitch == 'A') && (octave == 4)) frequency = 440.00;
+            else if ((pitch == 'B') && (octave == 4)) frequency = 493.88;
+            else if ((pitch == 'C') && (octave == 5)) frequency = 523.25;
+            else if ((pitch == 'D') && (octave == 5)) frequency = 587.33;
+            else if ((pitch == 'E') && (octave == 5)) frequency = 659.25;
+            else if ((pitch == 'F') && (octave == 5)) frequency = 698.46;
+            else if ((pitch == 'G') && (octave == 5)) frequency = 783.99;
+            else if ((pitch == 'A') && (octave == 5)) frequency = 880.00;
+            else if ((pitch == 'B') && (octave == 5)) frequency = 987.77;
+            else if ((pitch == 'C') && (octave == 6)) frequency = 1046.50;
+            else if ((pitch == 'B') && (octave == 3)) frequency = 246.94;
         }
 
         double volume = 0x7FFFFFF;
@@ -1644,13 +1591,7 @@ void analyze_audio_continuous(struct Score * scr){
 
         Note * new_note = malloc(sizeof(Note));
         new_note->note = note[0];
-        if (note[1] == '#') {
-            new_note->is_sharp = true;
-            new_note->octave = note[2] - '0';
-        } else {
-            new_note->is_sharp = false;
-            new_note->octave = note[1] - '0';
-        }
+        new_note->octave = note[1] - '0';
         new_note->duration = 'e';
         new_note->next = NULL;
 
