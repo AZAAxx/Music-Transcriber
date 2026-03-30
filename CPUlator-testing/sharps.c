@@ -1277,7 +1277,7 @@ void score(Score* score) {
             }
             if (sw & 0x2) {
                 analyze_audio_continuous(score);
-                // printf("calling analyze_audio_continuous()...\n");
+                printf("calling analyze_audio_continuous()...\n");
             }
             if (edge_cap & 0x8) {
                 *(KEY_BASE + 3) = 0x3FF;
@@ -1411,7 +1411,6 @@ void draw_score(Score* score){
                 }
                 else if ((pitch == 'C') && (octave == 6)) {
                     draw_ledger_line(current_hor, current_vert);
-                    draw_ledger_line(current_hor, current_vert + 9);
                 }
             }
 
@@ -1443,7 +1442,6 @@ void draw_score(Score* score){
                 }
                 else if ((pitch == 'C') && (octave == 6)) {
                     draw_ledger_line(current_hor, current_vert);
-                    draw_ledger_line(current_hor, current_vert + 9);
                 }
             }
 
@@ -1920,7 +1918,7 @@ void window(int * audio_input, int audio_size){
 
 const char * get_fft_result(int * audio_input, int audio_size){
     int n = next_pow2(audio_size);
-    window(audio_input, audio_size); 
+    window(audio_input, audio_size);
 
     Complex * a = format_input(audio_input, audio_size);
     fft(a, n, 0);

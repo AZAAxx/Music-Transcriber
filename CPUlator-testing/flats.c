@@ -553,7 +553,7 @@ typedef struct Note {
   char note; // C, D, E, F, G, A, B
   int octave; // only support 4 and 5 right now (middle c is C4)
   char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
-  bool is_sharp;
+  bool is_flat;
   struct Note * next;
 } Note;
 
@@ -572,16 +572,16 @@ typedef struct ScoreList {
 
 // testing random notes
 static Note score3_notes[] = {
-    {'C', 4, 'w', true, &score3_notes[1]},
+    {'C', 4, 'w', false, &score3_notes[1]},
     {'D', 4, 'h', true, &score3_notes[2]},
-    {'E', 4, 'q', false, &score3_notes[3]},
-    {'F', 4, 'e', true, &score3_notes[4]},
+    {'E', 4, 'q', true, &score3_notes[3]},
+    {'F', 4, 'e', false, &score3_notes[4]},
     {'G', 4, 's', true, &score3_notes[5]},
     {'A', 5, 'w', true, &score3_notes[6]},
-    {'B', 5, 'h', false, &score3_notes[7]},
-    {'C', 5, 'q', true, &score3_notes[8]},
+    {'B', 5, 'h', true, &score3_notes[7]},
+    {'C', 5, 'q', false, &score3_notes[8]},
     {'D', 5, 'e', true, &score3_notes[9]},
-    {'E', 5, 's', false, NULL},
+    {'E', 5, 's', true, NULL},
     {'\0', 0, '\0', false, NULL}
 };
 
@@ -1277,7 +1277,7 @@ void score(Score* score) {
             }
             if (sw & 0x2) {
                 analyze_audio_continuous(score);
-                // printf("calling analyze_audio_continuous()...\n");
+                printf("calling analyze_audio_continuous()...\n");
             }
             if (edge_cap & 0x8) {
                 *(KEY_BASE + 3) = 0x3FF;
@@ -1337,7 +1337,7 @@ void draw_score(Score* score){
         char duration = current_note->duration;
         char pitch = current_note->note;
         int octave = current_note->octave;
-        bool is_sharp = current_note->is_sharp;
+        bool is_flat = current_note->is_flat;
 
         if (pitch == '\0') break;
 
@@ -1411,11 +1411,10 @@ void draw_score(Score* score){
                 }
                 else if ((pitch == 'C') && (octave == 6)) {
                     draw_ledger_line(current_hor, current_vert);
-                    draw_ledger_line(current_hor, current_vert + 9);
                 }
             }
 
-            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
+            if (is_flat) draw_flat(current_hor - 16, current_vert - 8);
                 
             if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
             else if (note_type == 'h') draw_half_note(current_hor, current_vert);
@@ -1443,11 +1442,10 @@ void draw_score(Score* score){
                 }
                 else if ((pitch == 'C') && (octave == 6)) {
                     draw_ledger_line(current_hor, current_vert);
-                    draw_ledger_line(current_hor, current_vert + 9);
                 }
             }
 
-            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
+            if (is_flat) draw_flat(current_hor - 16, current_vert - 8);
 
             if (note_type == 'w') {
                 draw_whole_note(current_hor, current_vert);
@@ -1487,7 +1485,7 @@ void play_score(Score* score){
         double dur = 0.0;
         int bpm = score->tempo;
         double secs_per_beat = 60.0 / ((double) bpm);
-        bool is_sharp = current_note->is_sharp;
+        bool is_flat = current_note->is_flat;
 
         if (pitch == '\0') break;
 
@@ -1498,29 +1496,29 @@ void play_score(Score* score){
             else if (duration == 'e') dur = secs_per_beat / 2;
             else if (duration == 's') dur = secs_per_beat / 4;
 
-        if      ((pitch == 'C') && (octave == 4) && !is_sharp) frequency = 261.63;
-        else if ((pitch == 'C') && (octave == 4) && is_sharp)  frequency = 277.18; 
-        else if ((pitch == 'D') && (octave == 4) && !is_sharp) frequency = 293.66;
-        else if ((pitch == 'D') && (octave == 4) && is_sharp)  frequency = 311.13;
+        if      ((pitch == 'C') && (octave == 4) && !is_flat) frequency = 261.63;
+        else if ((pitch == 'D') && (octave == 4) && is_flat)  frequency = 277.18; 
+        else if ((pitch == 'D') && (octave == 4) && !is_flat) frequency = 293.66;
+        else if ((pitch == 'E') && (octave == 4) && is_flat)  frequency = 311.13;
         else if ((pitch == 'E') && (octave == 4))              frequency = 329.63;
-        else if ((pitch == 'F') && (octave == 4) && !is_sharp) frequency = 349.23;
-        else if ((pitch == 'F') && (octave == 4) && is_sharp)  frequency = 369.99;
-        else if ((pitch == 'G') && (octave == 4) && !is_sharp) frequency = 392.00;
-        else if ((pitch == 'G') && (octave == 4) && is_sharp)  frequency = 415.30;
-        else if ((pitch == 'A') && (octave == 4) && !is_sharp) frequency = 440.00;
-        else if ((pitch == 'A') && (octave == 4) && is_sharp)  frequency = 466.16;
+        else if ((pitch == 'F') && (octave == 4) && !is_flat) frequency = 349.23;
+        else if ((pitch == 'G') && (octave == 4) && is_flat)  frequency = 369.99;
+        else if ((pitch == 'G') && (octave == 4) && !is_flat) frequency = 392.00;
+        else if ((pitch == 'A') && (octave == 4) && is_flat)  frequency = 415.30;
+        else if ((pitch == 'A') && (octave == 4) && !is_flat) frequency = 440.00;
+        else if ((pitch == 'B') && (octave == 4) && is_flat)  frequency = 466.16;
         else if ((pitch == 'B') && (octave == 4))              frequency = 493.88;
-        else if ((pitch == 'C') && (octave == 5) && !is_sharp) frequency = 523.25;
-        else if ((pitch == 'C') && (octave == 5) && is_sharp)  frequency = 554.37;
-        else if ((pitch == 'D') && (octave == 5) && !is_sharp) frequency = 587.33;
-        else if ((pitch == 'D') && (octave == 5) && is_sharp)  frequency = 622.25;
+        else if ((pitch == 'C') && (octave == 5) && !is_flat) frequency = 523.25;
+        else if ((pitch == 'D') && (octave == 5) && is_flat)  frequency = 554.37;
+        else if ((pitch == 'D') && (octave == 5) && !is_flat) frequency = 587.33;
+        else if ((pitch == 'E') && (octave == 5) && is_flat)  frequency = 622.25;
         else if ((pitch == 'E') && (octave == 5))              frequency = 659.25;
-        else if ((pitch == 'F') && (octave == 5) && !is_sharp) frequency = 698.46;
-        else if ((pitch == 'F') && (octave == 5) && is_sharp)  frequency = 739.99;
-        else if ((pitch == 'G') && (octave == 5) && !is_sharp) frequency = 783.99;
-        else if ((pitch == 'G') && (octave == 5) && is_sharp)  frequency = 830.61;
-        else if ((pitch == 'A') && (octave == 5) && !is_sharp) frequency = 880.00;
-        else if ((pitch == 'A') && (octave == 5) && is_sharp)  frequency = 932.33;
+        else if ((pitch == 'F') && (octave == 5) && !is_flat) frequency = 698.46;
+        else if ((pitch == 'G') && (octave == 5) && is_flat)  frequency = 739.99;
+        else if ((pitch == 'G') && (octave == 5) && !is_flat) frequency = 783.99;
+        else if ((pitch == 'A') && (octave == 5) && is_flat)  frequency = 830.61;
+        else if ((pitch == 'A') && (octave == 5) && !is_flat) frequency = 880.00;
+        else if ((pitch == 'B') && (octave == 5) && is_flat)  frequency = 932.33;
         else if ((pitch == 'B') && (octave == 5))              frequency = 987.77;
         else if ((pitch == 'C') && (octave == 6))              frequency = 1046.50;
         else if ((pitch == 'B') && (octave == 3))              frequency = 246.94;
@@ -1801,15 +1799,15 @@ const double frequencies[] = {
 
 // Note names
 const char *notes[] = {
-    "C0","C#0","D0","D#0","E0","F0","F#0","G0","G#0","A0","A#0","B0",
-    "C1","C#1","D1","D#1","E1","F1","F#1","G1","G#1","A1","A#1","B1",
-    "C2","C#2","D2","D#2","E2","F2","F#2","G2","G#2","A2","A#2","B2",
-    "C3","C#3","D3","D#3","E3","F3","F#3","G3","G#3","A3","A#3","B3",
-    "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4",
-    "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5",
-    "C6","C#6","D6","D#6","E6","F6","F#6","G6","G#6","A6","A#6","B6",
-    "C7","C#7","D7","D#7","E7","F7","F#7","G7","G#7","A7","A#7","B7",
-    "C8","C#8","D8","D#8","E8","F8","F#8","G8","G#8","A8","A#8","B8"
+    "C0","Db0","D0","Eb0","E0","F0","Gb0","G0","Ab0","A0","Bb0","B0",
+    "C1","Db1","D1","Eb1","E1","F1","Gb1","G1","Ab1","A1","Bb1","B1",
+    "C2","Db2","D2","Eb2","E2","F2","Gb2","G2","Ab2","A2","Bb2","B2",
+    "C3","Db3","D3","Eb3","E3","F3","Gb3","G3","Ab3","A3","Bb3","B3",
+    "C4","Db4","D4","Eb4","E4","F4","Gb4","G4","Ab4","A4","Bb4","B4",
+    "C5","Db5","D5","Eb5","E5","F5","Gb5","G5","Ab5","A5","Bb5","B5",
+    "C6","Db6","D6","Eb6","E6","F6","Gb6","G6","Ab6","A6","Bb6","B6",
+    "C7","Db7","D7","Eb7","E7","F7","Gb7","G7","Ab7","A7","Bb7","B7",
+    "C8","Db8","D8","Eb8","E8","F8","Gb8","G8","Ab8","A8","Bb8","B8"
 };
 
 int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
@@ -1920,7 +1918,7 @@ void window(int * audio_input, int audio_size){
 
 const char * get_fft_result(int * audio_input, int audio_size){
     int n = next_pow2(audio_size);
-    window(audio_input, audio_size); 
+    window(audio_input, audio_size);
 
     Complex * a = format_input(audio_input, audio_size);
     fft(a, n, 0);
