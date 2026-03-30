@@ -121,7 +121,11 @@ void efficient_fft(Complex * a, int n, bool inverse) {
             if (i & (1 << i)) 
                 reverse |= 1 << (log_n - 1 - i);
         }
-        if (i < reverse) swap(a+i, a+reverse);
+        if (i < reverse) {
+            Complex temp = *(a + i);
+            *(a + i) = *(a + reverse);
+            *(a + reverse) = temp;
+        }
     }
 
     for (int len = 2; len <= n; len <<= 1) {
