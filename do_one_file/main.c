@@ -30,51 +30,10 @@ typedef struct {
 #endif // _GFXFONT_H_
 
 
-
-
-
 /*
-This is the core graphics library for all our displays, providing a common
-set of graphics primitives (points, lines, circles, etc.).  It needs to be
-paired with a hardware-specific library for each display device we carry
-(to handle the lower-level functions).
-
-Adafruit invests time and resources providing this open source code, please
-support Adafruit & open-source hardware by purchasing products from Adafruit!
-
-Copyright (c) 2013 Adafruit Industries.  All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-- Redistributions of source code must retain the above copyright notice,
-  this list of conditions and the following disclaimer.
-- Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-*/
-
-
- /* 
- WARNING: This file has been altered to fix some errors, refer to the 
- Adafruit Github repository for the original version. 
+ WARNING: This file has been altered to fix some errors, refer to the
+ Adafruit Github repository for the original version.
  */
-
-
-//#pragma once
-//#include <Adafruit_GFX.h>
 
 const uint8_t FreeMono9pt7bBitmaps[] = {
     0xAA, 0xA8, 0x0C, 0xED, 0x24, 0x92, 0x48, 0x24, 0x48, 0x91, 0x2F, 0xE4,
@@ -254,7 +213,7 @@ const GFXfont FreeMono9pt7b = {(uint8_t *)FreeMono9pt7bBitmaps,
 
 /* VGA.c and VGA.h CONTENT for terminal.c */
 
-#define PIXEL_BUF_CTRL_BASE		0xFF203020
+#define PIXEL_BUF_CTRL_BASE     0xFF203020
 #define FONT FreeMono9pt7b                   // global font when not specified otherwise
 
 const short int BLACK = 0x0000;
@@ -287,12 +246,12 @@ void plot_pixel(int x, int y, short int color) {
 
 
 void background(short int color) {
-	for (int x = 0; x < 320; x++) {
-		for (int y = 0; y < 240; y++) {
-			plot_pixel(x, y, color); 
-		}
-	}
-	return;
+    for (int x = 0; x < 320; x++) {
+        for (int y = 0; y < 240; y++) {
+            plot_pixel(x, y, color);
+        }
+    }
+    return;
 }
 
 
@@ -310,7 +269,7 @@ void VGA_init(){
     /* set back pixel buffer to Buffer 2 */
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
-    background(BLACK); 
+    background(BLACK);
 
     CURSOR_Y_DEFAULT = 20;                             // arbitrary values for now
     CURSOR_X_DEFAULT = 10;
@@ -328,14 +287,14 @@ void draw_char(char c, short int color)
     const GFXglyph *glyph  = &font->glyph[c - font->first];
     const uint8_t  *bitmap = font->bitmap;
 
-    uint16_t bit_offset = glyph->bitmapOffset * 8;                 // byte → bit index
+    uint16_t bit_offset = glyph->bitmapOffset * 8;                 // byte -> bit index
     int gx = CURSOR_X + glyph->xOffset;
-    int gy = CURSOR_Y + glyph->yOffset;                            // yOffset is negative — goes above baseline
+    int gy = CURSOR_Y + glyph->yOffset;                            // yOffset is negative -- goes above baseline
 
     for (int row = 0; row < glyph->height; row++) {
         for (int col = 0; col < glyph->width; col++) {
             uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
-           
+
             if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
                 plot_pixel(gx + col, gy + row, color);
             }
@@ -346,24 +305,24 @@ void draw_char(char c, short int color)
 
 
 /* ONLY USE THIS FUNCTION TO WRITE STUFF */
-void write(const char * str){
+void write(const char * str, short int color){
     const GFXfont *font = &FONT;
 
     while (*str != '\0') {             // while it is not the terminating character yet
         char c = *str++;
 
         if (c == '\n') {                                  // if there is a newline
-            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position 
+            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
         }
 
         if (c < font->first || c > font->last) continue;
-        
-        draw_char(c, WHITE);  
+
+        draw_char(c, color);
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c, WHITE);  
+        draw_char(c, color);
 
         const GFXglyph *glyph  = &font->glyph[c - font->first];
         CURSOR_X += glyph->xAdvance;
@@ -377,10 +336,10 @@ void delete_char(char c){
     const GFXglyph *glyph  = &font->glyph[c - font->first];
     CURSOR_X -= glyph->xAdvance;
 
-    draw_char(c, BLACK);  
+    draw_char(c, BLACK);
     swap_buffers_on_vsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-    draw_char(c, BLACK);  
+    draw_char(c, BLACK);
 }
 
 
@@ -390,8 +349,9 @@ void delete_char(char c){
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
-#define PS2_BASE	0xFF200100
+#define PS2_BASE    0xFF200100
 
 volatile int * ps2_data_reg;
 volatile int * ps2_ctr_reg;
@@ -408,9 +368,9 @@ void PS2_init(){
     *ps2_data_reg = 0xFF;   // reset and clear FIFO
     *ps2_ctr_reg  = 0x1;    // enable the PS/2 port (RE bit)
 
-    break_code = false; 
-    extended = false;  
-    shift = false;       
+    break_code = false;
+    extended = false;
+    shift = false;
 }
 
 
@@ -493,35 +453,34 @@ char ps2_decoder(int keycode){
 
     break_code = false;
     extended = false;
-    
+
     // right now no support for extended keys
     char c = keycode2ascii(keycode, shift);
-    return c;   
+    return c;
 }
 
 
 
 int get_keycode(){
     int RVALID = 0;
-	int PS2_data;
+    int PS2_data;
 
     while(1){
         PS2_data = *(ps2_data_reg);          // read the Data register in the PS/2 port
         RVALID = PS2_data & 0x8000;          // extract the RVALID field
-        if(RVALID) 
+        if(RVALID)
             return (PS2_data & 0xFF);
-    } 
+    }
 }
 
 
 
 char get_char(){
-	char c = 0;
-	while (c == 0) {
-		int keycode = get_keycode();
-    	c = ps2_decoder(keycode);
-		// printf("%c", c);
-	}
+    char c = 0;
+    while (c == 0) {
+        int keycode = get_keycode();
+        c = ps2_decoder(keycode);
+    }
     return c;
 }
 
@@ -534,8 +493,8 @@ char * get_line(){
 
     while(i < buffer_size - 1){             // leave one char for the terminating character
         char c = get_char();                // get char from PS2 input
-        
-        if(c == 0) 
+
+        if(c == 0)
             continue;                       // invalid scancode, no support yet, do nothing
 
         else if(c == '\b' && i > 0){        // delete the last character
@@ -544,7 +503,7 @@ char * get_line(){
             continue;
         }
 
-        else write((char[]) {c,'\0'});      // write c 
+        else write(((char[]) {c,'\0'}), WHITE);      // write c
 
         if(c == '\n'){                      // if Enter has been pressed
             str[i] = '\0';                  // add a string termination character
@@ -552,7 +511,7 @@ char * get_line(){
         }
         str[i] = c;                         // store char in string
         i++;
-        
+
     }
     str[buffer_size - 1] = '\0';
     return str;
@@ -590,100 +549,139 @@ char * get_string(char ** line){
 
 /* database.c CONTENT */
 
-typedef struct Note {   
-  char note; // C, D, E, F, G, A, B         
-  int octave; // only support 4 and 5 right now (middle c ic C4)
+typedef struct Note {
+  char note; // C, D, E, F, G, A, B
+  int octave; // only support 4 and 5 right now (middle c is C4)
   char duration;  // length of note e.g. w (whole), h (half), q (quarter), e (eighth), s (sixteenth)
   struct Note * next;
 } Note;
 
 // this is a node in the linked list
-typedef struct Score {   
-  char name[64];           
-  struct Note* notes; // this will just hold all of the notes in order   
-  struct Score* next;  
-  int tempo;  
+typedef struct Score {
+  char name[64];
+  struct Note* notes; // this will just hold all of the notes in order
+  struct Score* next;
+  int tempo;
 } Score;
 
 // this is the linked list
 typedef struct ScoreList {
-    struct Score* head; // start of list of all of the scores 
+    struct Score* head; // start of list of all of the scores
 } ScoreList;
 
-// ScoreList is a Linked List with Score as the node
+// testing random notes
+static Note score3_notes[] = {
+    {'C', 4, 'w', NULL},
+    {'C', 4, 'h', NULL},
+    {'C', 4, 'q', NULL},
+    {'C', 4, 'e', NULL},
+    {'C', 4, 's', NULL},
+    {'C', 5, 'w', NULL},
+    {'C', 5, 'h', NULL},
+    {'C', 5, 'q', NULL},
+    {'C', 5, 'e', NULL},
+    {'C', 5, 's', NULL},
+    {'\0', 0, '\0', NULL}
+};
+
+// ode to joy
+static Note score2_notes[] = {
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'C', 4, 'q', NULL},
+    {'C', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'h', NULL},
+    {'D', 4, 'e', NULL},
+    {'D', 4, 'h', NULL},
+    {'\0', 0, '\0', NULL}
+};
+
+// twinkle twinkle
+static Note score1_notes[] = {
+    {'C', 4, 'q', NULL},
+    {'C', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'A', 4, 'q', NULL},
+    {'A', 4, 'q', NULL},
+    {'G', 4, 'h', NULL},
+    {'F', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'D', 4, 'q', NULL},
+    {'C', 4, 'h', NULL},
+    {'G', 4, 'q', NULL},
+    {'G', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'F', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'E', 4, 'q', NULL},
+    {'D', 4, 'h', NULL},
+    {'\0', 0, '\0', NULL}
+};
+
+Score score3 = {
+    .name = "test",
+    .next = NULL,
+    .notes = score3_notes,
+    .tempo = 120
+};
+
 Score score2 = {
     .name = "ode",
-    .next = NULL,
-    .notes = {
-      {'E', 4, 'q'},   
-      {'E', 4, 'q'},   
-      {'F', 4, 'q'},   
-      {'G', 4, 'q'},   
-      {'G', 4, 'q'},   
-      {'F', 4, 'q'},   
-      {'E', 4, 'q'},
-      {'D', 4, 'q'},
-      {'C', 4, 'q'},
-      {'C', 4, 'q'},
-      {'D', 4, 'q'},
-      {'E', 4, 'q'},
-      {'E', 4, 'h'},
-      {'D', 4, 'q'},
-      {'D', 4, 'h'},
-      {'\0', 0, '\0'}
-    }
+    .next = &score3,
+    .notes = score2_notes,
+    .tempo = 120
 };
 
 Score score1 = {
     .name = "twinkle",
     .next = &score2,
-    .notes = {
-      {'C', 4, 'q'},   
-      {'C', 4, 'q'},   
-      {'G', 4, 'q'},   
-      {'G', 4, 'q'},   
-      {'A', 4, 'q'},   
-      {'A', 4, 'q'},   
-      {'G', 4, 'h'},
-      {'F', 4, 'q'},
-      {'F', 4, 'q'},
-      {'E', 4, 'q'},
-      {'E', 4, 'q'},
-      {'D', 4, 'q'},
-      {'D', 4, 'q'},
-      {'C', 4, 'h'},
-      {'C', 4, 'q'},
-      {'D', 4, 'q'},
-      {'E', 4, 'q'},
-      {'F', 4, 'q'},
-      {'G', 4, 'q'},
-      {'A', 4, 'q'},
-      {'B', 4, 'q'},
-      {'C', 5, 'q'},
-      {'\0', 0, '\0'}
-    }
+    .notes = score1_notes,
+    .tempo = 120
 };
 
 // ScoreList is a Linked List with Score as the node
 ScoreList scoreList = {&score1};
 
-int score_count = 0;
+int score_count = 3;
 
 void add_note(Note * new_note, Score * scr){
     Note * last_note = scr->notes;
-    while (last_note->next != NULL) {
+    if (last_note->note == '\0') {
+        scr->notes = new_note;
+        free(last_note); // free old sentinel
+        return;
+    }
+
+    // go to last real note
+    while (last_note->next != NULL && last_note->next->note != '\0') {
         last_note = last_note->next;
     }
+    if (last_note->next != NULL && last_note->next->note == '\0') {
+        free(last_note->next);
+        last_note->next = NULL;
+    }
+
     last_note->next = new_note;
 }
 
 
 bool exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
-    // search through the linked list and check for the score name
     bool exist = false;
     Score* current = scoreList.head;
-    while (current != NULL) { 
-        if (strcmp(current->name, name) == 0) { // returns 0 if strings are identical
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
             exist = true;
         }
         current = current->next;
@@ -692,9 +690,7 @@ bool exists(char* name) {             // returns 1 if a score with name already 
 }
 
 Score* find(char* name) {      // returns a pointer to the score if it exists
-    // search through the whole list, check the names
     Score* found = NULL;
-    // doesn't exist
     if (exists(name) == 0) return found;
 
     Score* current = scoreList.head;
@@ -704,13 +700,12 @@ Score* find(char* name) {      // returns a pointer to the score if it exists
             break;
         }
         current = current->next;
-    } 
-    
+    }
+
     return found;
 }
 
 Score* add(char* name) {       // adds a score with name to the list
-    // put newest score at the very end
     Score* current = scoreList.head;
     Score* prev = NULL;
     while (current != NULL) {
@@ -720,9 +715,15 @@ Score* add(char* name) {       // adds a score with name to the list
 
     Score* new_score = malloc(sizeof(Score));
     strcpy(new_score->name, name);
-    new_score->notes = NULL;
     new_score->next = NULL;
-    new_score->tempo = 100;    // arbitrary default value
+    new_score->tempo = 120;    // arbitrary default value
+
+    Note* sentinel = malloc(sizeof(Note));
+    sentinel->note = '\0';
+    sentinel->octave = 0;
+    sentinel->duration = '\0';
+    sentinel->next = NULL;
+    new_score->notes = sentinel;
 
     if (prev == NULL) scoreList.head = new_score;
     if (prev != NULL) prev->next = new_score;
@@ -732,19 +733,15 @@ Score* add(char* name) {       // adds a score with name to the list
 }
 
 void delete(char* name) {       // deletes the score from the list
-    // delete the score with the name specified
     Score* current = scoreList.head;
     Score* prev = NULL;
-    // doesn't exist
     if (exists(name) == 0) return;
 
-    // exists
     score_count--;
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
-            // last score in multi-score list
             if (prev == NULL) {
-                scoreList.head = current->next; // removing the head
+                scoreList.head = current->next;
             } else {
                 prev->next = current->next;
             }
@@ -752,54 +749,49 @@ void delete(char* name) {       // deletes the score from the list
             return;
         }
         prev = current;
-        current = current-> next;
+        current = current->next;
     }
 
     return;
 }
 
 char* get_scores() {                  // returns the names of all the scores
-    // go through each score return names of all scores
     Score* current = scoreList.head;
-    // empty aka no scores in list
     if (current == NULL) return NULL;
 
-    char* all_names = malloc(score_count*100 * sizeof(char));
+    int count = 0;
+    Score* tmp = scoreList.head;
+    while (tmp != NULL) { count++; tmp = tmp->next; }
+
+    char* all_names = malloc(count * 100 * sizeof(char));
     all_names[0] = '\0';
 
-    // not empty list
     while (current != NULL) {
-        strcat(all_names, current->name); // adds the name of the current score to the string
-        strcat(all_names, "\n"); // for the space between the scores (4 spaces)
+        strcat(all_names, current->name);
+        strcat(all_names, "\n");
         current = current->next;
     }
     return all_names;
 }
 
 
-
-
-
-
 /* VGA CONTENT for score.c CONTENT */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <math.h>
 
-#define SW_BASE			0xFF200040
-#define KEY_BASE		(volatile int *) 0xFF200050
-#define AUDIO_BASE		(volatile int *)0xFF203040
+#define SW_BASE         0xFF200040
+#define KEY_BASE        (volatile int *) 0xFF200050
+#define AUDIO_BASE      (volatile int *)0xFF203040
 #define PI              3.14159265358979324
 
 const int NOTE_WIDTH = 7; // this many pixels
-const short int TOOLBAR_COLOR = 0x731F; // this is light purple right now
+const short int TOOLBAR_COLOR = 0x731F;
 
 const int VERT_MIN = 0;
-const int VERT_MAX = 239; 
+const int VERT_MAX = 239;
 const int HOR_MIN = 0;
-const int HOR_MAX = 319; 
+const int HOR_MAX = 319;
 
 int current_hor;
 int current_vert;
@@ -982,7 +974,7 @@ int flag_down[12][15] = {
     {0,0,0,0,0,0,0,0,0,0,0,0,1,1,0},
     {0,0,0,0,0,0,0,0,0,0,0,1,1,0,0},
     {0,0,0,0,0,0,0,0,0,1,1,1,0,0,0},
-    {0,0,0,0,0,0,0,1,1,1,1,0,0,0,0},    
+    {0,0,0,0,0,0,0,1,1,1,1,0,0,0,0},
     {0,0,0,0,1,1,1,1,1,0,0,0,0,0,0},
     {1,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
     {1,1,1,0,0,0,0,0,0,0,0,0,0,0,0}
@@ -1019,77 +1011,84 @@ int flat[12][8] = {
 };
 
 
-
+// Forward declarations to avoid implicit declaration warnings
+void swap(int* a, int* b);
+void draw_brace(int x, int y);
+void draw_treble_clef(int x, int y);
+void draw_bar_line(int x_center, int y_center);
+void draw_flag(int x, int y);
 void draw_score(Score* score);
 void play_score(Score* score);
-
+int terminal();
+void AUDIO_init();
+int isFIFOavailable();
+void play_frequency(double frequency, double volume, double duration);
 
 
 /* VGA CONTENT for score.c */
 
 void draw_line(int x0, int y0, int x1, int y1, short int color) {
-	bool is_steep = abs(y1 - y0) > abs (x1 - x0);
-	if (is_steep) {
-		swap(&x0, &y0);
-		swap(&x1, &y1);
-	}
-	if (x0 > x1) {
-		swap(&x0, &x1);
-		swap(&y0, &y1);
-	}	
-	
-	int deltax = x1 - x0;
-	int deltay = abs(y1 - y0);
-	int error = -(deltax / 2);
-	int y = y0;
-	int y_step;
-	
-	if (y0 < y1) {
-		y_step = 1;
-	}
-	else { y_step = -1; }
-	
-	for (int x = x0; x < x1; x++) {
-		if (is_steep) {
-			plot_pixel(y, x, color);	
-		}
-		else {
-			plot_pixel(x, y, color);
-		}
-		error += deltay;
-		if (error > 0) {
-			y += y_step;
-			error -= deltax;
-		}
-	}
-	
-	return;
-}	
+    bool is_steep = abs(y1 - y0) > abs (x1 - x0);
+    if (is_steep) {
+        swap(&x0, &y0);
+        swap(&x1, &y1);
+    }
+    if (x0 > x1) {
+        swap(&x0, &x1);
+        swap(&y0, &y1);
+    }
 
+    int deltax = x1 - x0;
+    int deltay = abs(y1 - y0);
+    int error = -(deltax / 2);
+    int y = y0;
+    int y_step;
+
+    if (y0 < y1) {
+        y_step = 1;
+    }
+    else { y_step = -1; }
+
+    for (int x = x0; x < x1; x++) {
+        if (is_steep) {
+            plot_pixel(y, x, color);
+        }
+        else {
+            plot_pixel(x, y, color);
+        }
+        error += deltay;
+        if (error > 0) {
+            y += y_step;
+            error -= deltax;
+        }
+    }
+
+    return;
+}
 
 
 void swap(int* a, int* b) {
-	int temp;
-	temp = *a;
-	*a = *b;
-	*b = temp;
-	return;
+    int temp;
+    temp = *a;
+    *a = *b;
+    *b = temp;
+    return;
 }
 
 
 
 
-void draw_staff(int x, int y) { 
-    draw_line(x, y, HOR_MAX - x, y, BLACK); // 5 lines in staff
+void draw_staff(int x, int y) {
+    draw_line(x, y, HOR_MAX - x, y, BLACK);
     draw_line(x, y + 9, HOR_MAX - x, y + 9, BLACK);
     draw_line(x, y + 18, HOR_MAX - x, y + 18, BLACK);
     draw_line(x, y + 27, HOR_MAX - x, y + 27, BLACK);
     draw_line(x, y + 36, HOR_MAX - x, y + 36, BLACK);
-	
+
     draw_brace(x - 8, y);
     draw_treble_clef(x, y - 4);
-	draw_bar_line(x, y); // first bar line near treble clef
-	draw_bar_line(HOR_MAX - x - 1, y); // end of line
+    draw_bar_line(x, y);           // first bar line near treble clef
+    draw_bar_line(HOR_MAX - x - 1, y); // end of line
 }
 
 void draw_brace(int x, int y) {
@@ -1118,7 +1117,7 @@ void draw_treble_clef(int x, int y) {
 
 void draw_time_signature(int x, int y) {
     for (int i = 0; i < 36; i++) {
-        for (int j = 0; j < 5; j++) {
+        for (int j = 0; j < 8; j++) {
             if (time_sig_4_4[i][j] == 1) {
                 plot_pixel(x + j, y + i, BLACK);
             }
@@ -1129,21 +1128,19 @@ void draw_time_signature(int x, int y) {
 void draw_toolbar() {
     draw_line(103, 210, HOR_MAX - 103, 210, TOOLBAR_COLOR);
     draw_line(100, 211, HOR_MAX - 100, 211, TOOLBAR_COLOR);
-	draw_line(100, 212, HOR_MAX - 100, 212, TOOLBAR_COLOR);
+    draw_line(100, 212, HOR_MAX - 100, 212, TOOLBAR_COLOR);
     draw_line(98, 213, HOR_MAX - 98, 213, TOOLBAR_COLOR);
-	draw_line(97, 214, HOR_MAX - 97, 214, TOOLBAR_COLOR);
-	draw_line(97, 215, HOR_MAX - 97, 215, TOOLBAR_COLOR);
-	
-    int count = 0;
+    draw_line(97, 214, HOR_MAX - 97, 214, TOOLBAR_COLOR);
+    draw_line(97, 215, HOR_MAX - 97, 215, TOOLBAR_COLOR);
+
     for (int i = 216; i < 225; i++) {
         draw_line(96, i, HOR_MAX - 96, i, TOOLBAR_COLOR);
-        count++;
     }
-	
-	draw_line(97, 225, HOR_MAX - 97, 225, TOOLBAR_COLOR);
-	draw_line(97, 226, HOR_MAX - 97, 226, TOOLBAR_COLOR);
+
+    draw_line(97, 225, HOR_MAX - 97, 225, TOOLBAR_COLOR);
+    draw_line(97, 226, HOR_MAX - 97, 226, TOOLBAR_COLOR);
     draw_line(98, 227, HOR_MAX - 98, 227, TOOLBAR_COLOR);
-	draw_line(100, 228, HOR_MAX - 100, 228, TOOLBAR_COLOR);
+    draw_line(100, 228, HOR_MAX - 100, 228, TOOLBAR_COLOR);
     draw_line(100, 229, HOR_MAX - 100, 229, TOOLBAR_COLOR);
     draw_line(103, 230, HOR_MAX - 103, 230, TOOLBAR_COLOR);
 }
@@ -1167,7 +1164,7 @@ void draw_note(int x_center, int y_center) {
                 plot_pixel(x_center + j, y_center + i, BLACK);
             }
         }
-    }    
+    }
 }
 
 void draw_half_note(int x_center, int y_center) {
@@ -1193,48 +1190,42 @@ void draw_eighth_note(int x_center, int y_center) {
 
 void draw_sixteenth_note(int x_center, int y_center) {
     draw_eighth_note(x_center, y_center);
-	if (y_center > staff_center) {
-		draw_flag(x_center, y_center + 4);
-	}
-	else draw_flag(x_center, y_center - 4);
+    if (y_center > staff_center) {
+        draw_flag(x_center, y_center + 4);
+    }
+    else draw_flag(x_center, y_center - 4);
 }
 
 void draw_ledger_line(int x_center, int y_center) {
     draw_line(x_center - 10, y_center, x_center + 11, y_center, BLACK);
 }
 
-void draw_flag(int x, int y) { // x and y are start of flag
+void draw_flag(int x, int y) {
     if (y > staff_center) {
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 8; j++) {
                 if (flag_up[i][j] == 1) {
                     plot_pixel(x + 7 + j, y - 27 + i, BLACK);
                 }
             }
-        }      
+        }
     }
     else {
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 15; j++) {
                 if (flag_down[i][j] == 1) {
-                    plot_pixel(x - 7 + j, y + 27 + i, BLACK);
+                    plot_pixel(x - 7 + j, y + 27 - 12 + i, BLACK);
                 }
             }
-        }  
+        }
     }
 }
 
 
 
-void AUDIO_init();
-int isFIFOavailable();
-void play_frequency(double frequency, double volume, double duration);
-
-// bool note_drawn = false;
-
-
-
 /* score.c CONTENT*/
+
+void analyze_audio_continuous(struct Score * scr);
 
 void score(Score* score) {
     AUDIO_init();
@@ -1247,64 +1238,85 @@ void score(Score* score) {
     background(WHITE);
 
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
     draw_score(score);
-    
+
     int edge_cap;
-	
-    while (1) {
+
+    while (1) { 
         unsigned int sw = *SW & 0x3FF;
-		
+
         if (sw & 0x1) {
             edge_cap = *(KEY_BASE + 3);
-            // *(KEY_BASE + 3) = 0x3FF;
             if (edge_cap & 0x1) {
                 draw_score(score);
             }
             if (edge_cap & 0x2) {
                 play_score(score);
             }
-            if (edge_cap & 0x4) {
-                //analyze_audio_continuous();
+            if (sw & 0x2) {
+                analyze_audio_continuous(score);
+                printf("calling analyze_audio_continuous()...\n");
             }
             if (edge_cap & 0x8) {
                 *(KEY_BASE + 3) = 0x3FF;
                 terminal();
             }
         }
-		*(KEY_BASE + 3) = 0x3FF;
+        *(KEY_BASE + 3) = 0x3FF;
     }
 }
 
 void draw_score(Score* score){
-	// handles drawing the whole score on the page
-    // draws the score using different functions for drawing notes
-    // draw each note here and call it once in the main function
     background(WHITE);
-	
+
     draw_staff(15, 30);
     draw_time_signature(32, 30);
-    // draw_toolbar();
-	draw_staff(15, 110);
-	draw_staff(15, 190);
-	draw_bar_line(HOR_MAX - 15 - 2, 190);
-	draw_bar_line(HOR_MAX - 15 - 4, 190);
-	
-    //swap_buffers_on_vsync();
-    //pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
-	
+    draw_staff(15, 110);
+    draw_staff(15, 190);
+    draw_bar_line(HOR_MAX - 15 - 2, 190);
+    draw_bar_line(HOR_MAX - 15 - 4, 190);
+
     current_hor = 60;
     current_vert = 30 + 27;
     staff_center = 30 + 18;
 
+    // score title
+    CURSOR_X = 10;
+    write(score->name, BLACK);
+    // score tempo
+    CURSOR_X = 230;
+    char tempo_str[20] = "BPM ";
+    int tempo = score->tempo;
+    int i = 4; // start concatenating after "BPM "
+    int start = i;
 
-    for (int note_idx = 0; note_idx < 64; note_idx++) { // note_idx for note array
-        // read the duration here instead of edge_cap
-		Note* current_note = &score->notes[note_idx];
+    if (tempo == 0) {
+        tempo_str[i++] = '0';
+    } else {
+        while (tempo > 0) {
+            tempo_str[i++] = '0' + (tempo % 10);
+            tempo /= 10;
+        }
+        // reverse the digits
+        int end = i - 1;
+        while (start < end) {
+            char tmp = tempo_str[start];
+            tempo_str[start++] = tempo_str[end];
+            tempo_str[end--] = tmp;
+        }
+    }
+    tempo_str[i] = '\0';
+    write(tempo_str, BLACK);
+
+    if (score->notes == NULL || score->notes->note == '\0') return;
+
+    Note* current_note = score->notes;
+    while (current_note != NULL) {
         char duration = current_note->duration;
         char pitch = current_note->note;
         int octave = current_note->octave;
-		
+
         if (pitch == '\0') break;
 
         note_drawn = true;
@@ -1313,49 +1325,32 @@ void draw_score(Score* score){
         else if (duration == 'q') note_type = 'q';
         else if (duration == 'e') note_type = 'e';
         else if (duration == 's') note_type = 's';
-		
+
         // check if going off screen
         if      (duration == 'w') {
             if ((current_hor + 120) > (HOR_MAX - 15)) {
                 current_hor = 60;
                 current_vert += (80);
-				staff_center += (80);
+                staff_center += (80);
             }
         }
         else if (duration == 'h') {
             if ((current_hor + 60) > (HOR_MAX - 15)) {
                 current_hor = 60;
                 current_vert += (80);
-				staff_center += (80);
+                staff_center += (80);
             }
         }
-        else if (duration == 'q') {
+        else {
             if ((current_hor + 30) > (HOR_MAX - 15)) {
                 current_hor = 60;
                 current_vert += (80);
-				staff_center += (80);
-            }
-        }
-        else if (duration == 'e') {
-            if ((current_hor + 30) > (HOR_MAX - 15)) {
-                current_hor = 60;
-                current_vert += (80);
-				staff_center += (80);
-            }
-        }
-        else if (duration == 's') {
-            if ((current_hor + 30) > (HOR_MAX - 15)) {
-                current_hor = 60;
-                current_vert += (80);
-				staff_center += (80);
+                staff_center += (80);
             }
         }
 
-		// read note here (note and octave together)
         if      ((pitch == 'C') && (octave == 4)) current_vert = staff_center + 27;
-        // idea for accidentals put accidental as member of Note struct
-        // read if sharp or flat and draw those --> need graphics for this
-		else if ((pitch == 'D') && (octave == 4)) current_vert = staff_center + 23;
+        else if ((pitch == 'D') && (octave == 4)) current_vert = staff_center + 23;
         else if ((pitch == 'E') && (octave == 4)) current_vert = staff_center + 18;
         else if ((pitch == 'F') && (octave == 4)) current_vert = staff_center + 13;
         else if ((pitch == 'G') && (octave == 4)) current_vert = staff_center + 9;
@@ -1369,42 +1364,45 @@ void draw_score(Score* score){
         else if ((pitch == 'A') && (octave == 5)) current_vert = staff_center - 27;
         else if ((pitch == 'B') && (octave == 5)) current_vert = staff_center - 32;
         else if ((pitch == 'C') && (octave == 6)) current_vert = staff_center - 36;
-		// end checking note and octave
-		
-		// keep this
+        else if ((pitch == 'B') && (octave == 3)) current_vert = staff_center + 32;
+
         draw_staff(15, 30);
         draw_time_signature(32, 30);
-        // draw_toolbar();
-		draw_staff(15, 110);
-		draw_staff(15, 190);
-		draw_bar_line(HOR_MAX - 15 - 2, 190);
-		draw_bar_line(HOR_MAX - 15 - 4, 190);
-		
-		// keep note_drawn thing
-    	// add more notes to this
+        draw_staff(15, 110);
+        draw_staff(15, 190);
+        draw_bar_line(HOR_MAX - 15 - 2, 190);
+        draw_bar_line(HOR_MAX - 15 - 4, 190);
+
         if (note_drawn) {
-			// add ledger line function for anything that needs it
-            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23))
-                draw_ledger_line(current_hor, current_vert);
-            // end ledger line block
-			
-			// read note duration here again from note_type which is set from duration
-			if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
+            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
+                if ((pitch == 'C') && (octave == 4)) {
+                    draw_ledger_line(current_hor, current_vert);
+                }
+                else if ((pitch == 'B') && (octave == 3)) {
+                    draw_ledger_line(current_hor, current_vert - 5);
+                }
+            }
+                
+            if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
             else if (note_type == 'h') draw_half_note(current_hor, current_vert);
             else if (note_type == 'q') draw_quarter_note(current_hor, current_vert);
             else if (note_type == 'e') draw_eighth_note(current_hor, current_vert);
             else if (note_type == 's') draw_sixteenth_note(current_hor, current_vert);
         }
-		// end of note drawing block
-		
-		// keep this
-        swap_buffers_on_vsync();
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
-		// this should be the same as the other if statement with (note_drawn) except with incrementing current values
+        swap_buffers_on_vsync();
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
         if (note_drawn) {
-            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23))
-                draw_ledger_line(current_hor, current_vert);
+            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
+                if ((pitch == 'C') && (octave == 4)) {
+                    draw_ledger_line(current_hor, current_vert);
+                }
+                else if ((pitch == 'B') && (octave == 3)) {
+                    draw_ledger_line(current_hor, current_vert - 5);
+                }
+            }
+
             if (note_type == 'w') {
                 draw_whole_note(current_hor, current_vert);
                 current_hor += 120;
@@ -1427,96 +1425,56 @@ void draw_score(Score* score){
             }
             note_drawn = false;
         }
-		// end of note drawing block
+
+        current_note = current_note->next;
     }
 }
 
 
 void play_score(Score* score){
-    // take the score and generate frequencies based on notes, play for specified duration
-    for (int note_idx = 0; note_idx < 64; note_idx++) { // note_idx for note array
-        // read the duration here instead of edge_cap
-        Note* current_note = &score->notes[note_idx];
+    Note* current_note = score->notes;
+    while (current_note != NULL) {
         char duration = current_note->duration;
         char pitch = current_note->note;
         int octave = current_note->octave;
         double frequency = 0.0;
-        double dur = 0.0; // name dur because something already named duration
-        // also assuming 120bpm right now so 1/120 = 0.008333333333s
-        int bpm = 120;
+        double dur = 0.0;
+        int bpm = score->tempo;
         double secs_per_beat = 60.0 / ((double) bpm);
-        
-        if (pitch != '\0') { // if note exists
-			if (duration == 'w') {
-				dur = secs_per_beat * 4;
-			}	
-            else if (duration == 'h') {
-				dur = secs_per_beat * 2;	
-			}
-			else if (duration == 'q') {
-				dur = secs_per_beat;	
-			}
-			else if (duration == 'e') {
-				dur = secs_per_beat / 2;
-			}
-			else if (duration == 's') {
-				dur = secs_per_beat / 4;
-			}
-				
-            // read note here (note and octave together) and get frequency
-			if ((pitch == 'C') && (octave == 4)) { // C4
-				frequency = 261.63;
-			}	
-			if ((pitch == 'D') && (octave == 4)) { // D4
-				frequency = 293.66;
-	    	}
-			if ((pitch == 'E') && (octave == 4)) { // E4
-				frequency = 329.63;
-			}	
-			if ((pitch == 'F') && (octave == 4)) { // F4
-				frequency = 349.23;
-			}
-			if ((pitch == 'G') && (octave == 4)) { // G4
-                frequency = 392.00;
-			}
-			if ((pitch == 'A') && (octave == 4)) { // A4
-                frequency = 440.00;
-			}
-			if ((pitch == 'B') && (octave == 4)) { // B4
-                frequency = 493.88;
-			}
-			if ((pitch == 'C') && (octave == 5)) { // C5
-                frequency = 523.25;
-			}
-            if ((pitch == 'D') && (octave == 5)) { // D5
-                frequency = 587.33;
-	    	}
-			if ((pitch == 'E') && (octave == 5)) { // E5
-                frequency = 659.25;
-			}	
-			if ((pitch == 'F') && (octave == 5)) { // F5
-                frequency = 698.46;
-			}
-			if ((pitch == 'G') && (octave == 5)) { // G5
-                frequency = 783.99;
-			}
-			if ((pitch == 'A') && (octave == 5)) { // A5
-                frequency = 880.00;
-			}
-			if ((pitch == 'B') && (octave == 5)) { // B5
-                frequency = 987.77;
-			}
-			if ((pitch == 'C') && (octave == 6)) { // C6
-                frequency = 1046.50;
-			}
+
+        if (pitch == '\0') break;
+
+        if (pitch != '\0') {
+            if      (duration == 'w') dur = secs_per_beat * 4;
+            else if (duration == 'h') dur = secs_per_beat * 2;
+            else if (duration == 'q') dur = secs_per_beat;
+            else if (duration == 'e') dur = secs_per_beat / 2;
+            else if (duration == 's') dur = secs_per_beat / 4;
+
+            if      ((pitch == 'C') && (octave == 4)) frequency = 261.63;
+            else if ((pitch == 'D') && (octave == 4)) frequency = 293.66;
+            else if ((pitch == 'E') && (octave == 4)) frequency = 329.63;
+            else if ((pitch == 'F') && (octave == 4)) frequency = 349.23;
+            else if ((pitch == 'G') && (octave == 4)) frequency = 392.00;
+            else if ((pitch == 'A') && (octave == 4)) frequency = 440.00;
+            else if ((pitch == 'B') && (octave == 4)) frequency = 493.88;
+            else if ((pitch == 'C') && (octave == 5)) frequency = 523.25;
+            else if ((pitch == 'D') && (octave == 5)) frequency = 587.33;
+            else if ((pitch == 'E') && (octave == 5)) frequency = 659.25;
+            else if ((pitch == 'F') && (octave == 5)) frequency = 698.46;
+            else if ((pitch == 'G') && (octave == 5)) frequency = 783.99;
+            else if ((pitch == 'A') && (octave == 5)) frequency = 880.00;
+            else if ((pitch == 'B') && (octave == 5)) frequency = 987.77;
+            else if ((pitch == 'C') && (octave == 6)) frequency = 1046.50;
+            else if ((pitch == 'B') && (octave == 3)) frequency = 246.94;
         }
-        // end checking note and octave
-		
-        // generate frequency and feed to audio when audio is ready
-        double volume = 0x7FFFFFF;     // max: 0x7FFFFFF; min: 0x8000000
+
+        double volume = 0x7FFFFFF;
         play_frequency(frequency, volume, dur);
         play_frequency(0, volume, 0.1);
-	}
+
+        current_note = current_note->next;
+    }
 }
 
 
@@ -1531,13 +1489,12 @@ void AUDIO_init(){
 
 
 int isFIFOavailable(){
-    int audio_counters = *(AUDIO_BASE + 1);        //load audio base register
-    //RAC = audio_counters & 0xFF;                   
-    int WSC = (audio_counters >> 16) & 0xFF;       //extract WSC and RAC value
-    int RAC = audio_counters & 0xFF;               //assume left and right FIFO have the same counts
+    int audio_counters = *(AUDIO_BASE + 1);
+    int WSC = (audio_counters >> 16) & 0xFF;
+    int RAC = audio_counters & 0xFF;
 
-    if(WSC > 0 & RAC > 0) return 1;                //check that there's space in FIFOs
-    return 0;                           
+    if (WSC > 0 & RAC > 0) return 1;
+    return 0;
 }
 
 void play_frequency(double frequency, double volume, double duration){
@@ -1555,7 +1512,7 @@ void play_frequency(double frequency, double volume, double duration){
             *(AUDIO_BASE + 3) = (int)(sign * volume);
 
             phase += phase_increment;
-            if (phase >= PI) {       // flipped at half period (PI), not full period (2PI)
+            if (phase >= PI) {
                 sign = -sign;
                 phase -= PI;
             }
@@ -1565,10 +1522,100 @@ void play_frequency(double frequency, double volume, double duration){
     }
 }
 
+#define f_s 8000
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+const char * get_fft_result(int * audio_input, int audio_size);
+
+#define RED 0xF800
+
+int circle[6][6] = {
+    {0,0,1,1,0,0},
+    {0,1,1,1,1,0},
+    {1,1,1,1,1,1},
+    {1,1,1,1,1,1},
+    {0,1,1,1,1,0},
+    {0,0,1,1,0,0}
+};
+
+void draw_circle(int x, int y, short int color) {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if (circle[i][j] == 1) {
+                 plot_pixel(x + j, y + i, color);
+            }
+        }
+    }
+}
+
+void analyze_audio_continuous(struct Score * scr){
+
+    int tempo = scr->tempo;
+    double duration_eighth = (double) 30/tempo;
+    int total_samples = duration_eighth * f_s;
+    int k = 0;
+
+    int * audio_input = malloc(total_samples * sizeof(int));
+    int right, left;
+
+    // draw recording circle on both buffers
+    draw_score(scr);
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // re-sync after draw_score
+    draw_circle(310, 5, RED);
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+    draw_score(scr);
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // re-sync
+    draw_circle(310, 5, RED);
+    
+    while(1){
+        // check SW1 
+        unsigned int sw = *SW & 0x3FF;
+        if (!(sw & 0x2)) break;
+
+        k = 0;
+
+        while (k < total_samples) {
+            if (isFIFOavailable()) {
+                right = *(AUDIO_BASE + 2);
+                left = *(AUDIO_BASE + 3);
+                int voltage = MAX(right, left);
+                audio_input[k] = voltage;
+                k++;
+            }
+        }
+        
+        const char * note = get_fft_result(audio_input, k);
+        printf("%s\n", note);
+
+        Note * new_note = malloc(sizeof(Note));
+        new_note->note = note[0];
+        new_note->octave = note[1] - '0';
+        new_note->duration = 'e';
+        new_note->next = NULL;
+
+        add_note(new_note, scr);
+
+        // draw_score(scr);
+        draw_circle(310, 5, RED);
+        swap_buffers_on_vsync();
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        // draw_score(scr);
+        draw_circle(310, 5, RED);
+    }
+
+    free(audio_input);
+
+    // erase recording circle on both buffers
+    draw_score(scr);
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // re-sync
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+    draw_score(scr);
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // re-sync
+}
+
 
 /* terminal.c CONTENT */
-
-#include <string.h>
 
 char* help_menu = "\'new <name>\'\n'open <name>\'\n\'delete <name>\'\n\'list\'\n\'clear\'\n";
 
@@ -1579,166 +1626,129 @@ int terminal(){
     background(BLACK);
 
     while(1){
-        write(">> ");
+        write(">> ", WHITE);
         char * line = get_line();
         char * command = get_string(&line);
 
-        const char * str_new = "new";
-        const char * str_open = "open";
+        const char * str_new    = "new";
+        const char * str_open   = "open";
         const char * str_delete = "delete";
-        const char * str_list = "list";
-        const char * str_help = "help";
-        const char * str_clear = "clear";
+        const char * str_list   = "list";
+        const char * str_help   = "help";
+        const char * str_clear  = "clear";
 
 
         if(strcmp(command, str_new) == 0){
-            char* name = get_string(&line); 
+            char* name = get_string(&line);
             if(exists(name)) {
-                write("Name already exists.\n");
+                write("Name already exists.\n", WHITE);
                 continue;
             }
-            struct Score* scr = add(name);
-            write("New score '");
-            write(name);
-            write("' added.\n");
-            //score(scr);
+            add(name);
+            write("New score '", WHITE);
+            write(name, WHITE);
+            write("' added.\n", WHITE);
         }
 
         else if(strcmp(command, str_open) == 0){
             char* name = get_string(&line);
             if(!exists(name)) {
-                write("'");
-                write(name);
-                write("' doesn't exist.\n");
+                write("'", WHITE);
+                write(name, WHITE);
+                write("' doesn't exist.\n", WHITE);
                 continue;
             }
             struct Score* scr = find(name);
-            write("Opening '");
-            write(name);
-            write("'...\n");
+            write("Opening '", WHITE);
+            write(name, WHITE);
+            write("'...\n", WHITE);
+            CURSOR_X = CURSOR_X_DEFAULT;
+            CURSOR_Y = CURSOR_Y_DEFAULT;
             score(scr);
         }
 
         else if(strcmp(command, str_delete) == 0){
             char* name = get_string(&line);
             if(!exists(name)) {
-                write("'");
-                write(name);
-                write("' doesn't exist.\n");
+                write("'", WHITE);
+                write(name, WHITE);
+                write("' doesn't exist.\n", WHITE);
                 continue;
             }
             delete(name);
-            write("'");
-            write(name);
-            write("' deleted.\n");
+            write("'", WHITE);
+            write(name, WHITE);
+            write("' deleted.\n", WHITE);
         }
-        
+
         else if(strcmp(command, str_list) == 0){
             char* list = get_scores();
-            write(list);
+            write(list, WHITE);
         }
 
         else if(strcmp(command, str_help) == 0){
-            write(help_menu);
+            write(help_menu, WHITE);
         }
 
         else if(strcmp(command, str_clear) == 0){
             background(BLACK);
             swap_buffers_on_vsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
             background(BLACK);
             CURSOR_X = CURSOR_X_DEFAULT;
             CURSOR_Y = CURSOR_Y_DEFAULT;
         }
 
         else{
-            write("Invalid command.\n");
+            write("Invalid command.\n", WHITE);
         }
 
     }
 }
 
 /* fft.c CONTENT */
-#include <stdbool.h>
-#include <math.h>
-#include <stdlib.h>
-
-#define f_s 8000
-#define PI 3.1415926535
-
 
 typedef struct Complex{
     double real;
     double im;
-} Complex ;
+} Complex;
 
 // Frequencies (Hz)
 const double frequencies[] = {
     // C0 - B0
     16.35, 17.32, 18.35, 19.45, 20.60, 21.83, 23.12, 24.50, 25.96, 27.50, 29.14, 30.87,
-
     // C1 - B1
     32.70, 34.65, 36.71, 38.89, 41.20, 43.65, 46.25, 49.00, 51.91, 55.00, 58.27, 61.74,
-
     // C2 - B2
     65.41, 69.30, 73.42, 77.78, 82.41, 87.31, 92.50, 98.00, 103.83, 110.00, 116.54, 123.47,
-
     // C3 - B3
     130.81, 138.59, 146.83, 155.56, 164.81, 174.61, 185.00, 196.00, 207.65, 220.00, 233.08, 246.94,
-
     // C4 - B4
     261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88,
-
     // C5 - B5
     523.25, 554.37, 587.33, 622.25, 659.25, 698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77,
-
     // C6 - B6
     1046.50, 1108.73, 1174.66, 1244.51, 1318.51, 1396.91, 1479.98, 1567.98, 1661.22, 1760.00, 1864.66, 1975.53,
-
     // C7 - B7
     2093.00, 2217.46, 2349.32, 2489.02, 2637.02, 2793.83, 2959.96, 3135.96, 3322.44, 3520.00, 3729.31, 3951.07,
-
     // C8 - B8
     4186.01, 4434.92, 4698.63, 4978.03, 5274.04, 5587.65, 5919.91, 6271.93, 6644.88, 7040.00, 7458.62, 7902.13
 };
 
-
-
 // Note names
 const char *notes[] = {
-    // C0 - B0
     "C0","C#0","D0","D#0","E0","F0","F#0","G0","G#0","A0","A#0","B0",
-
-    // C1 - B1
     "C1","C#1","D1","D#1","E1","F1","F#1","G1","G#1","A1","A#1","B1",
-
-    // C2 - B2
     "C2","C#2","D2","D#2","E2","F2","F#2","G2","G#2","A2","A#2","B2",
-
-    // C3 - B3
     "C3","C#3","D3","D#3","E3","F3","F#3","G3","G#3","A3","A#3","B3",
-
-    // C4 - B4
     "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4",
-
-    // C5 - B5
     "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5",
-
-    // C6 - B6
     "C6","C#6","D6","D#6","E6","F6","F#6","G6","G#6","A6","A#6","B6",
-
-    // C7 - B7
     "C7","C#7","D7","D#7","E7","F7","F#7","G7","G#7","A7","A#7","B7",
-
-    // C8 - B8
     "C8","C#8","D8","D#8","E8","F8","F#8","G8","G#8","A8","A#8","B8"
 };
 
-
 int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
-
-// NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, 
-// writing iterative FFT, or using one array for all a, a0, a1 memory
 
 Complex z_mult(Complex z1, Complex z2) {
     return (Complex){
@@ -1772,8 +1782,7 @@ int next_pow2(int n) {
 }
 
 Complex * format_input(int * audio_input, int audio_size){
-    // copy the array A into array a of size 2^exp = n
-    int n = next_pow2(audio_size);                             
+    int n = next_pow2(audio_size);
     Complex * a = malloc(n * sizeof(Complex));
     for(int i=0; i<n; i++) {
         if(i < audio_size) a[i] = (Complex){audio_input[i], 0};
@@ -1791,12 +1800,9 @@ double * format_result(Complex * a, int n){
     return bins;
 }
 
-
-// Main source: https://cp-algorithms.com/algebra/fft.html
 void fft(Complex * a, int n, bool inverse) {
     if (n == 1)
         return;
-
 
     Complex *a0 = malloc(n/2 * sizeof(Complex));
     Complex *a1 = malloc(n/2 * sizeof(Complex));
@@ -1814,12 +1820,10 @@ void fft(Complex * a, int n, bool inverse) {
     Complex wn = {cos(ang), sin(ang)};
 
     for (int i = 0; 2 * i < n; i++) {
-        //a[i] = a0[i] + w * a1[i];
         a[i] = z_add(a0[i], z_mult(w, a1[i]));
-        //a[i + n/2] = a0[i] - w * a1[i];
         a[i + n/2] = z_sub(a0[i], z_mult(w, a1[i]));
         if (inverse) {
-            a[i] = z_scale(a[i], 2);                // scaling divides by the number
+            a[i] = z_scale(a[i], 2);
             a[i + n/2] = z_scale(a[i + n/2], 2);
         }
         w = z_mult(w, wn);
@@ -1829,14 +1833,13 @@ void fft(Complex * a, int n, bool inverse) {
     free(a1);
 }
 
-char* find_note(double * bins, int n){
-    int max_k = 1;                      // skip bin 0, which is the DC value
+const char* find_note(double * bins, int n){
+    int max_k = 1;
     for(int i = 0; i < n/2; i++){
         if(bins[i] > bins[max_k]) max_k = i;
     }
     double freq = (double) max_k * f_s / n;
 
-    // iterate through frequency array to find the closest frequency
     int note_idx = 0;
     for(int i = 0; i < num_notes; i++){
         if(fabs(frequencies[i] - freq) < fabs(frequencies[note_idx] - freq)) note_idx = i;
@@ -1844,7 +1847,6 @@ char* find_note(double * bins, int n){
     return notes[note_idx];
 }
 
-// Applies a Hann window to the audio input
 void window(int * audio_input, int audio_size){
     for(int i = 0; i < audio_size; i++){
         double w = sin(PI * i / audio_size);
@@ -1852,9 +1854,7 @@ void window(int * audio_input, int audio_size){
     }
 }
 
-char * get_fft_result(int * audio_input, int audio_size){
-    //window(audio_input, audio_size);
-
+const char * get_fft_result(int * audio_input, int audio_size){
     int n = next_pow2(audio_size);
 
     Complex * a = format_input(audio_input, audio_size);
@@ -1863,9 +1863,9 @@ char * get_fft_result(int * audio_input, int audio_size){
     double * bins = format_result(a, n);
     free(a);
 
-    char * note = find_note(bins, n);
+    const char * note = find_note(bins, n);
     free(bins);
-    
+
     return note;
 }
 
