@@ -1250,16 +1250,7 @@ void analyze_audio_continuous(struct Score * scr);
 
 void score(Score* score) {
     AUDIO_init();
-
-    pixel_ctrl_ptr = (volatile int *)0xFF203020;
-
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
-    swap_buffers_on_vsync();
-    pixel_buffer_start = *pixel_ctrl_ptr;
-    background(WHITE);
-
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+    VGA_init();
     draw_score(score);
 
     int edge_cap;
@@ -1270,9 +1261,11 @@ void score(Score* score) {
         if (sw & 0x1) {
             edge_cap = *(KEY_BASE + 3);
             if (edge_cap & 0x1) {
+                *(KEY_BASE + 3) = 0x3FF;
                 draw_score(score);
             }
             if (edge_cap & 0x2) {
+                *(KEY_BASE + 3) = 0x3FF;
                 play_score(score);
             }
             if (sw & 0x2) {
@@ -1288,9 +1281,58 @@ void score(Score* score) {
     }
 }
 
+void draw_score_helper(Note * note){
+
+    char duration = note->duration;
+    char pitch = note->note;
+    int octave = note->octave;
+    bool is_sharp = note->is_sharp;
+
+    note_type = duration;
+
+    if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
+        if ((pitch == 'C') && (octave == 4)) {
+            draw_ledger_line(current_hor, current_vert);
+        }
+        else if ((pitch == 'B') && (octave == 3)) {
+            draw_ledger_line(current_hor, current_vert - 5);
+        }
+        else if ((pitch == 'A') && (octave == 5)) {
+            draw_ledger_line(current_hor, current_vert);
+        }
+        else if ((pitch == 'B') && (octave == 5)) {
+            draw_ledger_line(current_hor, current_vert + 5);
+        }
+        else if ((pitch == 'C') && (octave == 6)) {
+            draw_ledger_line(current_hor, current_vert);
+            draw_ledger_line(current_hor, current_vert + 9);
+        }
+    }
+
+    if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
+        
+    if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
+    else if (note_type == 'h') draw_half_note(current_hor, current_vert);
+    else if (note_type == 'q') draw_quarter_note(current_hor, current_vert);
+    else if (note_type == 'e') draw_eighth_note(current_hor, current_vert);
+    else if (note_type == 's') draw_sixteenth_note(current_hor, current_vert);
+    
+}
+
+
 void draw_score(Score* score){
     background(WHITE);
+    draw_staff(15, 30);
+    draw_time_signature(32, 30);
+    draw_staff(15, 110);
+    draw_staff(15, 190);
+    draw_bar_line(HOR_MAX - 15 - 2, 190);
+    draw_bar_line(HOR_MAX - 15 - 4, 190);
 
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+    background(WHITE);
     draw_staff(15, 30);
     draw_time_signature(32, 30);
     draw_staff(15, 110);
@@ -1305,6 +1347,7 @@ void draw_score(Score* score){
     // score title
     CURSOR_X = 10;
     write(score->name, BLACK);
+
     // score tempo
     CURSOR_X = 230;
     char tempo_str[20] = "BPM ";
@@ -1337,16 +1380,10 @@ void draw_score(Score* score){
         char duration = current_note->duration;
         char pitch = current_note->note;
         int octave = current_note->octave;
-        bool is_sharp = current_note->is_sharp;
 
         if (pitch == '\0') break;
-
-        note_drawn = true;
-        if      (duration == 'w') note_type = 'w';
-        else if (duration == 'h') note_type = 'h';
-        else if (duration == 'q') note_type = 'q';
-        else if (duration == 'e') note_type = 'e';
-        else if (duration == 's') note_type = 's';
+        
+        note_type = duration;
 
         // check if going off screen
         if      (duration == 'w') {
@@ -1371,7 +1408,8 @@ void draw_score(Score* score){
             }
         }
 
-        if      ((pitch == 'C') && (octave == 4)) current_vert = staff_center + 27;
+        if      ((pitch == 'B') && (octave == 3)) current_vert = staff_center + 32;
+        else if ((pitch == 'C') && (octave == 4)) current_vert = staff_center + 27;
         else if ((pitch == 'D') && (octave == 4)) current_vert = staff_center + 23;
         else if ((pitch == 'E') && (octave == 4)) current_vert = staff_center + 18;
         else if ((pitch == 'F') && (octave == 4)) current_vert = staff_center + 13;
@@ -1386,92 +1424,21 @@ void draw_score(Score* score){
         else if ((pitch == 'A') && (octave == 5)) current_vert = staff_center - 27;
         else if ((pitch == 'B') && (octave == 5)) current_vert = staff_center - 32;
         else if ((pitch == 'C') && (octave == 6)) current_vert = staff_center - 36;
-        else if ((pitch == 'B') && (octave == 3)) current_vert = staff_center + 32;
 
-        draw_staff(15, 30);
-        draw_time_signature(32, 30);
-        draw_staff(15, 110);
-        draw_staff(15, 190);
-        draw_bar_line(HOR_MAX - 15 - 2, 190);
-        draw_bar_line(HOR_MAX - 15 - 4, 190);
 
-        if (note_drawn) {
-            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
-                if ((pitch == 'C') && (octave == 4)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
-                else if ((pitch == 'B') && (octave == 3)) {
-                    draw_ledger_line(current_hor, current_vert - 5);
-                }
-                else if ((pitch == 'A') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
-                else if ((pitch == 'B') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert + 5);
-                }
-                else if ((pitch == 'C') && (octave == 6)) {
-                    draw_ledger_line(current_hor, current_vert);
-                    draw_ledger_line(current_hor, current_vert + 9);
-                }
-            }
-
-            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
-                
-            if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
-            else if (note_type == 'h') draw_half_note(current_hor, current_vert);
-            else if (note_type == 'q') draw_quarter_note(current_hor, current_vert);
-            else if (note_type == 'e') draw_eighth_note(current_hor, current_vert);
-            else if (note_type == 's') draw_sixteenth_note(current_hor, current_vert);
-        }
+        draw_score_helper(current_note);
 
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-        if (note_drawn) {
-            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
-                if ((pitch == 'C') && (octave == 4)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
-                else if ((pitch == 'B') && (octave == 3)) {
-                    draw_ledger_line(current_hor, current_vert - 5);
-                }
-                else if ((pitch == 'A') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert);
-                }
-                else if ((pitch == 'B') && (octave == 5)) {
-                    draw_ledger_line(current_hor, current_vert + 5);
-                }
-                else if ((pitch == 'C') && (octave == 6)) {
-                    draw_ledger_line(current_hor, current_vert);
-                    draw_ledger_line(current_hor, current_vert + 9);
-                }
-            }
+        draw_score_helper(current_note);
 
-            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
-
-            if (note_type == 'w') {
-                draw_whole_note(current_hor, current_vert);
-                current_hor += 120;
-            }
-            else if (note_type == 'h') {
-                draw_half_note(current_hor, current_vert);
-                current_hor += 60;
-            }
-            else if (note_type == 'q') {
-                draw_quarter_note(current_hor, current_vert);
-                current_hor += 30;
-            }
-            else if (note_type == 'e') {
-                draw_eighth_note(current_hor, current_vert);
-                current_hor += 30;
-            }
-            else if (note_type == 's') {
-                draw_sixteenth_note(current_hor, current_vert);
-                current_hor += 30;
-            }
-            note_drawn = false;
-        }
-
+        if (note_type == 'w') current_hor += 120;
+        else if (note_type == 'h') current_hor += 60;
+        else if (note_type == 'q') current_hor += 30;
+        else if (note_type == 'e') current_hor += 30;
+        else if (note_type == 's') current_hor += 30;
+        
         current_note = current_note->next;
     }
 }
@@ -1909,7 +1876,11 @@ void efficient_fft(Complex * a, int n, bool inverse) {
             if (i & (1 << i)) 
                 reverse |= 1 << (log_n - 1 - i);
         }
-        if (i < reverse) swap(a+i, a+reverse);
+        if (i < reverse) {
+            Complex temp = *(a + i);
+            *(a + i) = *(a + reverse);
+            *(a + reverse) = temp;
+        }
     }
 
     for (int len = 2; len <= n; len <<= 1) {
