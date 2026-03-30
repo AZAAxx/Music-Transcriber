@@ -1897,6 +1897,48 @@ void fft(Complex * a, int n, bool inverse) {
     free(a1);
 }
 
+
+
+void efficient_fft(Complex * a, int n, bool inverse) {
+    int log_n = 0;     
+    while ((1 << log_n) < n) log_n++;
+
+    for (int i = 0; i < n; i++) {
+        int reverse = 0;
+        for (int i = 0; i < log_n; i++) {
+            if (i & (1 << i)) 
+                reverse |= 1 << (log_n - 1 - i);
+        }
+        if (i < reverse) swap(a+i, a+reverse);
+    }
+
+    for (int len = 2; len <= n; len <<= 1) {
+
+        double ang = 2 * PI / len * (inverse ? -1 : 1);
+        Complex wlen = (Complex) {cos(ang), sin(ang)};
+
+        for (int i = 0; i < n; i += len) {
+            Complex w = (Complex) {1, 0};
+
+            for (int j = 0; j < len / 2; j++) {
+                Complex u = a[i+j], v = z_mult(a[i+j+len/2], w);
+                a[i+j] = z_add(u, v);
+                a[i+j+len/2] = z_sub(u, v);
+                w = z_mult(w, wlen);
+            }
+        }
+    }
+
+    if (inverse) {
+        for(int i = 0; i < n; i++){
+            a[i] = z_scale(a[i], n);   //scaling
+        }           
+    }
+}
+
+
+
+
 const char* find_note(double * bins, int n){
     int max_k = 1;
     for(int i = 2; i < n/2; i++){
@@ -1923,7 +1965,7 @@ const char * get_fft_result(int * audio_input, int audio_size){
     window(audio_input, audio_size); 
 
     Complex * a = format_input(audio_input, audio_size);
-    fft(a, n, 0);
+    efficient_fft(a, n, 0);
 
     double * bins = format_result(a, n);
     free(a);
