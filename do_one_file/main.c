@@ -570,83 +570,125 @@ typedef struct ScoreList {
     struct Score* head; // start of list of all of the scores
 } ScoreList;
 
-// testing random notes
+// river flows in you
+static Note score4_notes[] = {
+    {'A', 4, 's', false, &score4_notes[1]},
+    {'C', 5, 's', true, &score4_notes[2]},
+    {'A', 5, 'e', false, &score4_notes[3]},
+    {'G', 5, 's', true, &score4_notes[4]},
+    {'A', 5, 'e', false, &score4_notes[5]},
+    {'A', 4, 's', false, &score4_notes[6]},
+    {'G', 5, 's', true, &score4_notes[7]},
+    {'A', 5, 'e', false, &score4_notes[8]},
+    {'A', 4, 's', false, &score4_notes[9]},
+    {'E', 5, 's', false, &score4_notes[10]},
+    {'A', 5, 'e', false, &score4_notes[11]},
+    {'A', 4, 's', false, &score4_notes[12]},
+    {'D', 5, 's', false, &score4_notes[13]},
+    {'A', 4, 'e', false, &score4_notes[14]},
+    {'B', 4, 's', false, &score4_notes[15]},
+    {'C', 5, 'e', true, &score4_notes[16]},
+    {'D', 5, 'e', false, &score4_notes[17]},
+    {'E', 5, 'e', false, &score4_notes[18]},
+    {'C', 5, 'e', true, &score4_notes[19]},
+    {'B', 4, 'h', false, &score4_notes[20]},
+    {'\0', 0, '\0', false, NULL}
+};
+
+// rick roll
 static Note score3_notes[] = {
-    {'C', 4, 'w', true, &score3_notes[1]},
-    {'D', 4, 'h', true, &score3_notes[2]},
-    {'E', 4, 'q', false, &score3_notes[3]},
-    {'F', 4, 'e', true, &score3_notes[4]},
-    {'G', 4, 's', true, &score3_notes[5]},
-    {'A', 5, 'w', true, &score3_notes[6]},
-    {'B', 5, 'h', false, &score3_notes[7]},
-    {'C', 5, 'q', true, &score3_notes[8]},
-    {'D', 5, 'e', true, &score3_notes[9]},
-    {'E', 5, 's', false, NULL},
+    {'C', 4, 's', false, &score3_notes[1]},
+    {'D', 4, 's', false, &score3_notes[2]},
+    {'F', 4, 's', false, &score3_notes[3]},
+    {'D', 4, 's', false, &score3_notes[4]},
+    {'A', 4, 'q', false, &score3_notes[5]},
+    {'A', 4, 'q', false, &score3_notes[6]},
+    {'G', 4, 'h', false, &score3_notes[7]},
+    {'C', 4, 's', false, &score3_notes[8]},
+    {'D', 4, 's', false, &score3_notes[9]},
+    {'F', 4, 's', false, &score3_notes[10]},
+    {'D', 4, 's', false, &score3_notes[11]},
+    {'G', 4, 'q', false, &score3_notes[12]},
+    {'G', 4, 'q', false, &score3_notes[13]},
+    {'F', 4, 'h', false, &score3_notes[14]},
     {'\0', 0, '\0', false, NULL}
 };
 
-// ode to joy
+// mii channel theme
 static Note score2_notes[] = {
-    {'E', 4, 'q', false, &score2_notes[1]},
-    {'E', 4, 'q', false, &score2_notes[2]},
-    {'F', 4, 'q', false, &score2_notes[3]},
-    {'G', 4, 'q', false, &score2_notes[4]},
-    {'G', 4, 'q', false, &score2_notes[5]},
-    {'F', 4, 'q', false, &score2_notes[6]},
-    {'E', 4, 'q', false, &score2_notes[7]},
-    {'D', 4, 'q', false, &score2_notes[8]},
-    {'C', 4, 'q', false, &score2_notes[9]},
-    {'C', 4, 'q', false, &score2_notes[10]},
-    {'D', 4, 'q', false, &score2_notes[11]},
-    {'E', 4, 'q', false, &score2_notes[12]},
-    {'E', 4, 'h', false, &score2_notes[13]},
-    {'D', 4, 'e', false, &score2_notes[14]},
-    {'D', 4, 'h', false, NULL},
+    {'F', 4, 'q', true, &score2_notes[1]},
+    {'A', 4, 'e', false, &score2_notes[2]},
+    {'C', 5, 'q', true, &score2_notes[3]},
+    {'A', 4, 'q', false, &score2_notes[4]},
+    {'F', 4, 'e', true, &score2_notes[5]},
+    {'D', 4, 'e', false, &score2_notes[6]},
+    {'D', 4, 'e', false, &score2_notes[7]},
+    {'D', 4, 'h', false, &score2_notes[8]},
+    {'C', 4, 'e', true, &score2_notes[9]},
+    {'D', 4, 'e', false, &score2_notes[10]},
+    {'F', 4, 'e', true, &score2_notes[11]},
+    {'A', 4, 'e', false, &score2_notes[12]},
+    {'C', 5, 'q', true, &score2_notes[13]},
+    {'A', 4, 'q', false, &score2_notes[14]},
+    {'F', 4, 'e', true, &score2_notes[15]},
+    {'E', 5, 'q', false, &score2_notes[16]},
+    {'D', 5, 'e', true, &score2_notes[17]},
+    {'D', 5, 'q', false, &score2_notes[18]},
     {'\0', 0, '\0', false, NULL}
 };
 
-// twinkle twinkle
+// november rain
 static Note score1_notes[] = {
-    {'C', 4, 'q', false, &score1_notes[1]},
-    {'C', 4, 'q', false, &score1_notes[2]},
-    {'G', 4, 'q', false, &score1_notes[3]},
-    {'G', 4, 'q', false, &score1_notes[4]},
-    {'A', 4, 'q', false, &score1_notes[5]},
-    {'A', 4, 'q', false, &score1_notes[6]},
-    {'G', 4, 'h', false, &score1_notes[7]},
-    {'F', 4, 'q', false, &score1_notes[8]},
-    {'F', 4, 'q', false, &score1_notes[9]},
-    {'E', 4, 'q', false, &score1_notes[10]},
-    {'E', 4, 'q', false, &score1_notes[11]},
-    {'D', 4, 'q', false, &score1_notes[12]},
-    {'D', 4, 'q', false, &score1_notes[13]},
-    {'C', 4, 'h', false, &score1_notes[14]},
-    {'G', 4, 'q', false, &score1_notes[15]},
-    {'G', 4, 'q', false, &score1_notes[16]},
-    {'F', 4, 'q', false, &score1_notes[17]},
-    {'F', 4, 'q', false, &score1_notes[18]},
-    {'E', 4, 'q', false, &score1_notes[19]},
-    {'E', 4, 'q', false, &score1_notes[20]},
-    {'D', 4, 'h', false, NULL},
+    {'A', 4, 'q', false, &score1_notes[1]},
+    {'F', 4, 'e', false, &score1_notes[2]},
+    {'G', 4, 'e', false, &score1_notes[3]},
+    {'A', 4, 'e', false, &score1_notes[4]},
+    {'B', 4, 'q', false, &score1_notes[5]},
+    {'C', 5, 'e', false, &score1_notes[6]},
+    {'A', 4, 'q', false, &score1_notes[7]},
+    {'E', 4, 's', false, &score1_notes[8]},
+    {'G', 4, 's', false, &score1_notes[9]},
+    {'A', 4, 's', false, &score1_notes[10]},
+    {'B', 4, 's', false, &score1_notes[11]},
+    {'C', 5, 'e', false, &score1_notes[12]},
+    {'B', 4, 'e', false, &score1_notes[13]},
+    {'A', 4, 'e', false, &score1_notes[14]},
+    {'G', 4, 'e', false, &score1_notes[15]},
+    {'A', 4, 'q', false, &score1_notes[16]},
+    {'F', 4, 'e', false, &score1_notes[17]},
+    {'G', 4, 'e', false, &score1_notes[18]},
+    {'A', 4, 'e', false, &score1_notes[19]},
+    {'G', 4, 'q', false, &score1_notes[20]},
+    {'F', 4, 'e', false, &score1_notes[21]},
+    {'E', 4, 's', false, &score1_notes[22]},
+    {'G', 4, 'q', false, &score1_notes[23]},
     {'\0', 0, '\0', false, NULL}
+};
+
+
+Score score4 = {
+    .name = "RiverFlows",
+    .next = NULL,
+    .notes = score4_notes,
+    .tempo = 120
 };
 
 Score score3 = {
-    .name = "test",
-    .next = NULL,
+    .name = "Rick",
+    .next = &score4,
     .notes = score3_notes,
-    .tempo = 120
+    .tempo = 200
 };
 
 Score score2 = {
-    .name = "ode",
+    .name = "MiiChannel",
     .next = &score3,
     .notes = score2_notes,
-    .tempo = 120
+    .tempo = 200
 };
 
 Score score1 = {
-    .name = "twinkle",
+    .name = "NovemberRain",
     .next = &score2,
     .notes = score1_notes,
     .tempo = 120
@@ -655,7 +697,7 @@ Score score1 = {
 // ScoreList is a Linked List with Score as the node
 ScoreList scoreList = {&score1};
 
-int score_count = 3;
+int score_count = 4;
 
 void add_note(Note * new_note, Score * scr){
     Note * last_note = scr->notes;
@@ -1250,7 +1292,16 @@ void analyze_audio_continuous(struct Score * scr);
 
 void score(Score* score) {
     AUDIO_init();
-    VGA_init();
+
+    pixel_ctrl_ptr = (volatile int *)0xFF203020;
+
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
+    swap_buffers_on_vsync();
+    pixel_buffer_start = *pixel_ctrl_ptr;
+    background(WHITE);
+
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
     draw_score(score);
 
     int edge_cap;
@@ -1261,11 +1312,9 @@ void score(Score* score) {
         if (sw & 0x1) {
             edge_cap = *(KEY_BASE + 3);
             if (edge_cap & 0x1) {
-                *(KEY_BASE + 3) = 0x3FF;
                 draw_score(score);
             }
             if (edge_cap & 0x2) {
-                *(KEY_BASE + 3) = 0x3FF;
                 play_score(score);
             }
             if (sw & 0x2) {
@@ -1281,58 +1330,9 @@ void score(Score* score) {
     }
 }
 
-void draw_score_helper(Note * note){
-
-    char duration = note->duration;
-    char pitch = note->note;
-    int octave = note->octave;
-    bool is_sharp = note->is_sharp;
-
-    note_type = duration;
-
-    if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
-        if ((pitch == 'C') && (octave == 4)) {
-            draw_ledger_line(current_hor, current_vert);
-        }
-        else if ((pitch == 'B') && (octave == 3)) {
-            draw_ledger_line(current_hor, current_vert - 5);
-        }
-        else if ((pitch == 'A') && (octave == 5)) {
-            draw_ledger_line(current_hor, current_vert);
-        }
-        else if ((pitch == 'B') && (octave == 5)) {
-            draw_ledger_line(current_hor, current_vert + 5);
-        }
-        else if ((pitch == 'C') && (octave == 6)) {
-            draw_ledger_line(current_hor, current_vert);
-            draw_ledger_line(current_hor, current_vert + 9);
-        }
-    }
-
-    if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
-        
-    if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
-    else if (note_type == 'h') draw_half_note(current_hor, current_vert);
-    else if (note_type == 'q') draw_quarter_note(current_hor, current_vert);
-    else if (note_type == 'e') draw_eighth_note(current_hor, current_vert);
-    else if (note_type == 's') draw_sixteenth_note(current_hor, current_vert);
-    
-}
-
-
 void draw_score(Score* score){
     background(WHITE);
-    draw_staff(15, 30);
-    draw_time_signature(32, 30);
-    draw_staff(15, 110);
-    draw_staff(15, 190);
-    draw_bar_line(HOR_MAX - 15 - 2, 190);
-    draw_bar_line(HOR_MAX - 15 - 4, 190);
 
-    swap_buffers_on_vsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-    background(WHITE);
     draw_staff(15, 30);
     draw_time_signature(32, 30);
     draw_staff(15, 110);
@@ -1347,7 +1347,6 @@ void draw_score(Score* score){
     // score title
     CURSOR_X = 10;
     write(score->name, BLACK);
-
     // score tempo
     CURSOR_X = 230;
     char tempo_str[20] = "BPM ";
@@ -1380,10 +1379,16 @@ void draw_score(Score* score){
         char duration = current_note->duration;
         char pitch = current_note->note;
         int octave = current_note->octave;
+        bool is_sharp = current_note->is_sharp;
 
         if (pitch == '\0') break;
-        
-        note_type = duration;
+
+        note_drawn = true;
+        if      (duration == 'w') note_type = 'w';
+        else if (duration == 'h') note_type = 'h';
+        else if (duration == 'q') note_type = 'q';
+        else if (duration == 'e') note_type = 'e';
+        else if (duration == 's') note_type = 's';
 
         // check if going off screen
         if      (duration == 'w') {
@@ -1408,8 +1413,7 @@ void draw_score(Score* score){
             }
         }
 
-        if      ((pitch == 'B') && (octave == 3)) current_vert = staff_center + 32;
-        else if ((pitch == 'C') && (octave == 4)) current_vert = staff_center + 27;
+        if      ((pitch == 'C') && (octave == 4)) current_vert = staff_center + 27;
         else if ((pitch == 'D') && (octave == 4)) current_vert = staff_center + 23;
         else if ((pitch == 'E') && (octave == 4)) current_vert = staff_center + 18;
         else if ((pitch == 'F') && (octave == 4)) current_vert = staff_center + 13;
@@ -1424,21 +1428,92 @@ void draw_score(Score* score){
         else if ((pitch == 'A') && (octave == 5)) current_vert = staff_center - 27;
         else if ((pitch == 'B') && (octave == 5)) current_vert = staff_center - 32;
         else if ((pitch == 'C') && (octave == 6)) current_vert = staff_center - 36;
+        else if ((pitch == 'B') && (octave == 3)) current_vert = staff_center + 32;
 
+        draw_staff(15, 30);
+        draw_time_signature(32, 30);
+        draw_staff(15, 110);
+        draw_staff(15, 190);
+        draw_bar_line(HOR_MAX - 15 - 2, 190);
+        draw_bar_line(HOR_MAX - 15 - 4, 190);
 
-        draw_score_helper(current_note);
+        if (note_drawn) {
+            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
+                if ((pitch == 'C') && (octave == 4)) {
+                    draw_ledger_line(current_hor, current_vert);
+                }
+                else if ((pitch == 'B') && (octave == 3)) {
+                    draw_ledger_line(current_hor, current_vert - 5);
+                }
+                else if ((pitch == 'A') && (octave == 5)) {
+                    draw_ledger_line(current_hor, current_vert);
+                }
+                else if ((pitch == 'B') && (octave == 5)) {
+                    draw_ledger_line(current_hor, current_vert + 5);
+                }
+                else if ((pitch == 'C') && (octave == 6)) {
+                    draw_ledger_line(current_hor, current_vert);
+                    draw_ledger_line(current_hor, current_vert + 9);
+                }
+            }
+
+            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
+                
+            if      (note_type == 'w') draw_whole_note(current_hor, current_vert);
+            else if (note_type == 'h') draw_half_note(current_hor, current_vert);
+            else if (note_type == 'q') draw_quarter_note(current_hor, current_vert);
+            else if (note_type == 'e') draw_eighth_note(current_hor, current_vert);
+            else if (note_type == 's') draw_sixteenth_note(current_hor, current_vert);
+        }
 
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-        draw_score_helper(current_note);
+        if (note_drawn) {
+            if ((current_vert < staff_center - 23) || (current_vert > staff_center + 23)) {
+                if ((pitch == 'C') && (octave == 4)) {
+                    draw_ledger_line(current_hor, current_vert);
+                }
+                else if ((pitch == 'B') && (octave == 3)) {
+                    draw_ledger_line(current_hor, current_vert - 5);
+                }
+                else if ((pitch == 'A') && (octave == 5)) {
+                    draw_ledger_line(current_hor, current_vert);
+                }
+                else if ((pitch == 'B') && (octave == 5)) {
+                    draw_ledger_line(current_hor, current_vert + 5);
+                }
+                else if ((pitch == 'C') && (octave == 6)) {
+                    draw_ledger_line(current_hor, current_vert);
+                    draw_ledger_line(current_hor, current_vert + 9);
+                }
+            }
 
-        if (note_type == 'w') current_hor += 120;
-        else if (note_type == 'h') current_hor += 60;
-        else if (note_type == 'q') current_hor += 30;
-        else if (note_type == 'e') current_hor += 30;
-        else if (note_type == 's') current_hor += 30;
-        
+            if (is_sharp) draw_sharp(current_hor - 15, current_vert - 5);
+
+            if (note_type == 'w') {
+                draw_whole_note(current_hor, current_vert);
+                current_hor += 120;
+            }
+            else if (note_type == 'h') {
+                draw_half_note(current_hor, current_vert);
+                current_hor += 60;
+            }
+            else if (note_type == 'q') {
+                draw_quarter_note(current_hor, current_vert);
+                current_hor += 30;
+            }
+            else if (note_type == 'e') {
+                draw_eighth_note(current_hor, current_vert);
+                current_hor += 30;
+            }
+            else if (note_type == 's') {
+                draw_sixteenth_note(current_hor, current_vert);
+                current_hor += 30;
+            }
+            note_drawn = false;
+        }
+
         current_note = current_note->next;
     }
 }
@@ -1740,8 +1815,8 @@ int terminal(){
 /* fft.c CONTENT */
 
 typedef struct Complex{
-    double real;
-    double im;
+    int real;
+    int im;
 } Complex;
 
 // Frequencies (Hz)
@@ -1781,10 +1856,11 @@ const char *notes[] = {
 
 int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
 
+// changed z_mult function for efficient_fft (get rid of bit shift for normal fft)
 Complex z_mult(Complex z1, Complex z2) {
     return (Complex){
-        .real = (z1.real * z2.real) - (z1.im * z2.im),
-        .im   = (z1.real * z2.im)   + (z1.im * z2.real)
+        .real = (int)(((long long)z1.real * z2.real - (long long)z1.im * z2.im) >> 15),
+        .im   = (int)(((long long)z1.real * z2.im   + (long long)z1.im * z2.real) >> 15)
     };
 }
 
@@ -1803,7 +1879,7 @@ Complex z_sub(Complex z1, Complex z2) {
 }
 
 Complex z_scale(Complex z, double s) {
-    return (Complex){ .real = z.real / s, .im = z.im / s };
+    return (Complex){ .real = (int) z.real / s, .im = (int) z.im / s };
 }
 
 int next_pow2(int n) {
@@ -1816,7 +1892,7 @@ Complex * format_input(int * audio_input, int audio_size){
     int n = next_pow2(audio_size);
     Complex * a = malloc(n * sizeof(Complex));
     for(int i=0; i<n; i++) {
-        if(i < audio_size) a[i] = (Complex){audio_input[i], 0};
+        if(i < audio_size) a[i] = (Complex){audio_input[i] >> 8, 0};
         else a[i] = (Complex){0, 0};
     }
     return a;
@@ -1826,7 +1902,7 @@ double * format_result(Complex * a, int n){
     double * bins = malloc(n * sizeof(double));
     for(int i = 0; i < n; i++){
         Complex z = a[i];
-        bins[i] = (double) 2 * (z.real * z.real + z.im * z.im) / n;
+        bins[i] = (double) 2 * ((long long) z.real * z.real + (long long) z.im * z.im) / n;
     }
     return bins;
 }
@@ -1864,17 +1940,15 @@ void fft(Complex * a, int n, bool inverse) {
     free(a1);
 }
 
-
-
 void efficient_fft(Complex * a, int n, bool inverse) {
     int log_n = 0;     
     while ((1 << log_n) < n) log_n++;
 
     for (int i = 0; i < n; i++) {
         int reverse = 0;
-        for (int i = 0; i < log_n; i++) {
-            if (i & (1 << i)) 
-                reverse |= 1 << (log_n - 1 - i);
+        for (int j = 0; j < log_n; j++) {
+            if (i & (1 << j)) 
+                reverse |= 1 << (log_n - 1 - j);
         }
         if (i < reverse) {
             Complex temp = *(a + i);
@@ -1886,10 +1960,10 @@ void efficient_fft(Complex * a, int n, bool inverse) {
     for (int len = 2; len <= n; len <<= 1) {
 
         double ang = 2 * PI / len * (inverse ? -1 : 1);
-        Complex wlen = (Complex) {cos(ang), sin(ang)};
+        Complex wlen = (Complex){(int)(cos(ang) * 32768), (int)(sin(ang) * 32768)};
 
         for (int i = 0; i < n; i += len) {
-            Complex w = (Complex) {1, 0};
+            Complex w = (Complex){32768, 0};
 
             for (int j = 0; j < len / 2; j++) {
                 Complex u = a[i+j], v = z_mult(a[i+j+len/2], w);
@@ -1906,9 +1980,6 @@ void efficient_fft(Complex * a, int n, bool inverse) {
         }           
     }
 }
-
-
-
 
 const char* find_note(double * bins, int n){
     int max_k = 1;
