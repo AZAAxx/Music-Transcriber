@@ -1822,10 +1822,17 @@ const char *notes[] = {
 
 int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
 
+
+typedef struct Complex{
+    double real;
+    double im;
+} Complex ;
+
+
 Complex z_mult(Complex z1, Complex z2) {
     return (Complex){
-        .real = (z1.real * z2.real) - (z1.im * z2.im),
-        .im   = (z1.real * z2.im)   + (z1.im * z2.real)
+        .real = (z1.real * z2.real - z1.im * z2.im),
+        .im   = (z1.real * z2.im   + z1.im * z2.real)
     };
 }
 
@@ -1857,7 +1864,7 @@ Complex * format_input(int * audio_input, int audio_size){
     int n = next_pow2(audio_size);
     Complex * a = malloc(n * sizeof(Complex));
     for(int i=0; i<n; i++) {
-        if(i < audio_size) a[i] = (Complex){audio_input[i], 0};
+        if(i < audio_size) a[i] = (Complex){audio_input[i] >> 8, 0};
         else a[i] = (Complex){0, 0};
     }
     return a;
@@ -1867,7 +1874,7 @@ double * format_result(Complex * a, int n){
     double * bins = malloc(n * sizeof(double));
     for(int i = 0; i < n; i++){
         Complex z = a[i];
-        bins[i] = (double) 2 * (z.real * z.real + z.im * z.im) / n;
+        bins[i] = (double) 2 * ((long long) z.real * z.real + (long long) z.im * z.im) / n;
     }
     return bins;
 }
@@ -1950,8 +1957,7 @@ void efficient_fft(Complex * a, int n, bool inverse) {
 
 
 
-
-const char* find_note(double * bins, int n){
+char* find_note(double * bins, int n){
     int max_k = 1;
     for(int i = 2; i < n/2; i++){
         if(bins[i] > bins[max_k]) max_k = i;
@@ -1987,7 +1993,6 @@ const char * get_fft_result(int * audio_input, int audio_size){
 
     return note;
 }
-
 
 int main(){
     terminal();

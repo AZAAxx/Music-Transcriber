@@ -13,8 +13,8 @@
 
 Complex z_mult(Complex z1, Complex z2) {
     return (Complex){
-        .real = (z1.real * z2.real) - (z1.im * z2.im),
-        .im   = (z1.real * z2.im)   + (z1.im * z2.real)
+        .real = (z1.real * z2.real - z1.im * z2.im),
+        .im   = (z1.real * z2.im   + z1.im * z2.real)
     };
 }
 
@@ -36,46 +36,34 @@ Complex z_scale(Complex z, double s) {
     return (Complex){ .real = z.real / s, .im = z.im / s };
 }
 
-
-
 int next_pow2(int n) {
     int p = 1;
     while (p < n) p <<= 1;
     return p;
 }
 
-
 Complex * format_input(int * audio_input, int audio_size){
-    // copy the array A into array a of size 2^exp = n
-    int n = next_pow2(audio_size);                             
+    int n = next_pow2(audio_size);
     Complex * a = malloc(n * sizeof(Complex));
     for(int i=0; i<n; i++) {
-        if(i < audio_size) a[i] = (Complex){audio_input[i], 0};
+        if(i < audio_size) a[i] = (Complex){audio_input[i] >> 8, 0};
         else a[i] = (Complex){0, 0};
     }
     return a;
 }
 
-
-
 double * format_result(Complex * a, int n){
     double * bins = malloc(n * sizeof(double));
     for(int i = 0; i < n; i++){
         Complex z = a[i];
-        bins[i] = (double) 2 * (z.real * z.real + z.im * z.im) / n;
+        bins[i] = (double) 2 * ((long long) z.real * z.real + (long long) z.im * z.im) / n;
     }
     return bins;
 }
 
-
-
-
-
-// Main source: https://cp-algorithms.com/algebra/fft.html
 void fft(Complex * a, int n, bool inverse) {
     if (n == 1)
         return;
-
 
     Complex *a0 = malloc(n/2 * sizeof(Complex));
     Complex *a1 = malloc(n/2 * sizeof(Complex));
@@ -93,12 +81,10 @@ void fft(Complex * a, int n, bool inverse) {
     Complex wn = {cos(ang), sin(ang)};
 
     for (int i = 0; 2 * i < n; i++) {
-        //a[i] = a0[i] + w * a1[i];
         a[i] = z_add(a0[i], z_mult(w, a1[i]));
-        //a[i + n/2] = a0[i] - w * a1[i];
         a[i + n/2] = z_sub(a0[i], z_mult(w, a1[i]));
         if (inverse) {
-            a[i] = z_scale(a[i], 2);                // scaling divides by the number
+            a[i] = z_scale(a[i], 2);
             a[i + n/2] = z_scale(a[i + n/2], 2);
         }
         w = z_mult(w, wn);
@@ -110,16 +96,15 @@ void fft(Complex * a, int n, bool inverse) {
 
 
 
-
 void efficient_fft(Complex * a, int n, bool inverse) {
     int log_n = 0;     
     while ((1 << log_n) < n) log_n++;
 
     for (int i = 0; i < n; i++) {
         int reverse = 0;
-        for (int i = 0; i < log_n; i++) {
-            if (i & (1 << i)) 
-                reverse |= 1 << (log_n - 1 - i);
+        for (int j = 0; j < log_n; j++) {
+            if (i & (1 << j)) 
+                reverse |= 1 << (log_n - 1 - j);
         }
         if (i < reverse) {
             Complex temp = *(a + i);
@@ -154,16 +139,13 @@ void efficient_fft(Complex * a, int n, bool inverse) {
 
 
 
-
-
 char* find_note(double * bins, int n){
-    int max_k = 1;                      // skip bin 0, which is the DC value
-    for(int i = 0; i < n/2; i++){
+    int max_k = 1;
+    for(int i = 2; i < n/2; i++){
         if(bins[i] > bins[max_k]) max_k = i;
     }
     double freq = (double) max_k * f_s / n;
 
-    // iterate through frequency array to find the closest frequency
     int note_idx = 0;
     for(int i = 0; i < num_notes; i++){
         if(fabs(frequencies[i] - freq) < fabs(frequencies[note_idx] - freq)) note_idx = i;
@@ -171,10 +153,6 @@ char* find_note(double * bins, int n){
     return notes[note_idx];
 }
 
-
-
-
-// Applies a Hann window to the audio input
 void window(int * audio_input, int audio_size){
     for(int i = 0; i < audio_size; i++){
         double w = sin(PI * i / audio_size);
@@ -182,14 +160,9 @@ void window(int * audio_input, int audio_size){
     }
 }
 
-
-
-
-
-char * get_fft_result(int * audio_input, int audio_size){
-    //window(audio_input, audio_size);
-
+const char * get_fft_result(int * audio_input, int audio_size){
     int n = next_pow2(audio_size);
+    //window(audio_input, audio_size); 
 
     Complex * a = format_input(audio_input, audio_size);
     fft(a, n, 0);
@@ -197,8 +170,9 @@ char * get_fft_result(int * audio_input, int audio_size){
     double * bins = format_result(a, n);
     free(a);
 
-    char * note = find_note(bins, n);
+    const char * note = find_note(bins, n);
     free(bins);
-    
+
     return note;
 }
+
