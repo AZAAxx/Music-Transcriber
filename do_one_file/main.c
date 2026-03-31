@@ -1623,8 +1623,9 @@ void analyze_audio_continuous(struct Score * scr){
     int right, left;
 
     // draw recording circle on both buffers
-    draw_score(scr);
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // re-sync after draw_score
+    //draw_score(scr);
+    //pixel_buffer_start = *(pixel_ctrl_ptr + 1); // re-sync after draw_score
+
     draw_circle(310, 5, RED);
     swap_buffers_on_vsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
@@ -1650,7 +1651,7 @@ void analyze_audio_continuous(struct Score * scr){
         }
         
         const char * note = get_fft_result(audio_input, k);
-        printf("%s\n", note);
+        //printf("%s\n", note);
 
         Note * new_note = malloc(sizeof(Note));
         new_note->note = note[0];
@@ -1666,20 +1667,19 @@ void analyze_audio_continuous(struct Score * scr){
 
         add_note(new_note, scr);
 
-        draw_score(scr);
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-        draw_circle(310, 5, RED);
-        swap_buffers_on_vsync();
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        //draw_score(scr);
+        //pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        //draw_circle(310, 5, RED);
+        //swap_buffers_on_vsync();
+        //pixel_buffer_start = *(pixel_ctrl_ptr + 1);
         // draw_score(scr);
-        draw_circle(310, 5, RED);
+        //draw_circle(310, 5, RED);
     }
 
     free(audio_input);
 
     // erase recording circle on both buffers
     draw_score(scr);
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // re-sync
     swap_buffers_on_vsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
     draw_score(scr);
@@ -1821,13 +1821,6 @@ const char *notes[] = {
 };
 
 int num_notes = sizeof(frequencies) / sizeof(frequencies[0]);
-
-
-typedef struct Complex{
-    double real;
-    double im;
-} Complex ;
-
 
 Complex z_mult(Complex z1, Complex z2) {
     return (Complex){
