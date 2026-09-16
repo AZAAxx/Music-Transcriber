@@ -8,19 +8,30 @@
 
 void add_note(Note * new_note, Score * scr){
     Note * last_note = scr->notes;
-    while (last_note->next != NULL) {
+    if (last_note->note == '\0') {
+        scr->notes = new_note;
+        free(last_note); // free old sentinel
+        return;
+    }
+
+    // go to last real note
+    while (last_note->next != NULL && last_note->next->note != '\0') {
         last_note = last_note->next;
     }
+    if (last_note->next != NULL && last_note->next->note == '\0') {
+        free(last_note->next);
+        last_note->next = NULL;
+    }
+
     last_note->next = new_note;
 }
 
 
 bool exists(char* name) {             // returns 1 if a score with name already exists, 0 if not exists
-    // search through the linked list and check for the score name
     bool exist = false;
     Score* current = scoreList.head;
-    while (current != NULL) { 
-        if (strcmp(current->name, name) == 0) { // returns 0 if strings are identical
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
             exist = true;
         }
         current = current->next;
@@ -29,9 +40,7 @@ bool exists(char* name) {             // returns 1 if a score with name already 
 }
 
 Score* find(char* name) {      // returns a pointer to the score if it exists
-    // search through the whole list, check the names
     Score* found = NULL;
-    // doesn't exist
     if (exists(name) == 0) return found;
 
     Score* current = scoreList.head;
@@ -41,13 +50,12 @@ Score* find(char* name) {      // returns a pointer to the score if it exists
             break;
         }
         current = current->next;
-    } 
-    
+    }
+
     return found;
 }
 
 Score* add(char* name) {       // adds a score with name to the list
-    // put newest score at the very end
     Score* current = scoreList.head;
     Score* prev = NULL;
     while (current != NULL) {
@@ -57,9 +65,15 @@ Score* add(char* name) {       // adds a score with name to the list
 
     Score* new_score = malloc(sizeof(Score));
     strcpy(new_score->name, name);
-    new_score->notes = NULL;
     new_score->next = NULL;
-    new_score->tempo = 100;    // arbitrary default value
+    new_score->tempo = 120;    // arbitrary default value
+
+    Note* sentinel = malloc(sizeof(Note));
+    sentinel->note = '\0';
+    sentinel->octave = 0;
+    sentinel->duration = '\0';
+    sentinel->next = NULL;
+    new_score->notes = sentinel;
 
     if (prev == NULL) scoreList.head = new_score;
     if (prev != NULL) prev->next = new_score;
@@ -69,19 +83,15 @@ Score* add(char* name) {       // adds a score with name to the list
 }
 
 void delete(char* name) {       // deletes the score from the list
-    // delete the score with the name specified
     Score* current = scoreList.head;
     Score* prev = NULL;
-    // doesn't exist
     if (exists(name) == 0) return;
 
-    // exists
     score_count--;
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
-            // last score in multi-score list
             if (prev == NULL) {
-                scoreList.head = current->next; // removing the head
+                scoreList.head = current->next;
             } else {
                 prev->next = current->next;
             }
@@ -89,25 +99,26 @@ void delete(char* name) {       // deletes the score from the list
             return;
         }
         prev = current;
-        current = current-> next;
+        current = current->next;
     }
 
     return;
 }
 
 char* get_scores() {                  // returns the names of all the scores
-    // go through each score return names of all scores
     Score* current = scoreList.head;
-    // empty aka no scores in list
     if (current == NULL) return NULL;
 
-    char* all_names = malloc(score_count*100 * sizeof(char));
+    int count = 0;
+    Score* tmp = scoreList.head;
+    while (tmp != NULL) { count++; tmp = tmp->next; }
+
+    char* all_names = malloc(count * 100 * sizeof(char));
     all_names[0] = '\0';
 
-    // not empty list
     while (current != NULL) {
-        strcat(all_names, current->name); // adds the name of the current score to the string
-        strcat(all_names, "\n"); // for the space between the scores (4 spaces)
+        strcat(all_names, current->name);
+        strcat(all_names, "\n");
         current = current->next;
     }
     return all_names;

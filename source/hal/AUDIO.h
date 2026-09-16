@@ -13,9 +13,6 @@ void AUDIO_init();
 // use to check the WSRC, WSLC, RARC, and RALC values
 int isFIFOavailable();  
 
-// sends the audio FIFO a square wave signal corresponding to 'frequency' for 'duration'
-void play_square_wave(double frequency, double volume, double duration);
-
 // send the FIFO values of a sine wave
 void play_frequency(double frequency, double amplitude, double duration);
 

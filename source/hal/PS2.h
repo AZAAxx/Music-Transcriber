@@ -1,7 +1,11 @@
 #ifndef __PS2__
 #define __PS2__
 
+#include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+
+#define PS2_BASE    0xFF200100
 
 volatile int * ps2_data_reg;
 volatile int * ps2_ctr_reg;

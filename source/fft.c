@@ -4,13 +4,6 @@
 #include "fft.h"
 
 
-// NEXT STEP: Use less dynamic memory allocation, either by optimizing array usage, 
-// writing iterative FFT, or using one array for all a, a0, a1 memory
-
-
-
-
-
 Complex z_mult(Complex z1, Complex z2) {
     return (Complex){
         .real = (z1.real * z2.real - z1.im * z2.im),
@@ -162,10 +155,10 @@ void window(int * audio_input, int audio_size){
 
 const char * get_fft_result(int * audio_input, int audio_size){
     int n = next_pow2(audio_size);
-    //window(audio_input, audio_size); 
+    window(audio_input, audio_size); 
 
     Complex * a = format_input(audio_input, audio_size);
-    fft(a, n, 0);
+    efficient_fft(a, n, 0);
 
     double * bins = format_result(a, n);
     free(a);

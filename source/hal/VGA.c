@@ -80,24 +80,24 @@ void draw_char(char c, short int color)
 
 
 /* ONLY USE THIS FUNCTION TO WRITE STUFF */
-void write(const char * str){
+void write(const char * str, short int color){
     const GFXfont *font = &FONT;
 
     while (*str != '\0') {             // while it is not the terminating character yet
         char c = *str++;
 
         if (c == '\n') {                                  // if there is a newline
-            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position 
+            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
         }
 
         if (c < font->first || c > font->last) continue;
-        
-        draw_char(c, WHITE);  
+
+        draw_char(c, color);
         swap_buffers_on_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c, WHITE);  
+        draw_char(c, color);
 
         const GFXglyph *glyph  = &font->glyph[c - font->first];
         CURSOR_X += glyph->xAdvance;
@@ -181,17 +181,17 @@ void swap(int* a, int* b) {
 
 
 
-void draw_staff(int x, int y) { 
-    draw_line(x, y, HOR_MAX - x, y, BLACK); // 5 lines in staff
+void draw_staff(int x, int y) {
+    draw_line(x, y, HOR_MAX - x, y, BLACK);
     draw_line(x, y + 9, HOR_MAX - x, y + 9, BLACK);
     draw_line(x, y + 18, HOR_MAX - x, y + 18, BLACK);
     draw_line(x, y + 27, HOR_MAX - x, y + 27, BLACK);
     draw_line(x, y + 36, HOR_MAX - x, y + 36, BLACK);
-	
+
     draw_brace(x - 8, y);
     draw_treble_clef(x, y - 4);
-	draw_bar_line(x, y); // first bar line near treble clef
-	draw_bar_line(HOR_MAX - x - 1, y); // end of line
+    draw_bar_line(x, y);           // first bar line near treble clef
+    draw_bar_line(HOR_MAX - x - 1, y); // end of line
 }
 
 void draw_brace(int x, int y) {
@@ -220,7 +220,7 @@ void draw_treble_clef(int x, int y) {
 
 void draw_time_signature(int x, int y) {
     for (int i = 0; i < 36; i++) {
-        for (int j = 0; j < 5; j++) {
+        for (int j = 0; j < 8; j++) {
             if (time_sig_4_4[i][j] == 1) {
                 plot_pixel(x + j, y + i, BLACK);
             }
@@ -231,26 +231,34 @@ void draw_time_signature(int x, int y) {
 void draw_toolbar() {
     draw_line(103, 210, HOR_MAX - 103, 210, TOOLBAR_COLOR);
     draw_line(100, 211, HOR_MAX - 100, 211, TOOLBAR_COLOR);
-	draw_line(100, 212, HOR_MAX - 100, 212, TOOLBAR_COLOR);
+    draw_line(100, 212, HOR_MAX - 100, 212, TOOLBAR_COLOR);
     draw_line(98, 213, HOR_MAX - 98, 213, TOOLBAR_COLOR);
-	draw_line(97, 214, HOR_MAX - 97, 214, TOOLBAR_COLOR);
-	draw_line(97, 215, HOR_MAX - 97, 215, TOOLBAR_COLOR);
-	
-    int count = 0;
+    draw_line(97, 214, HOR_MAX - 97, 214, TOOLBAR_COLOR);
+    draw_line(97, 215, HOR_MAX - 97, 215, TOOLBAR_COLOR);
+
     for (int i = 216; i < 225; i++) {
         draw_line(96, i, HOR_MAX - 96, i, TOOLBAR_COLOR);
-        count++;
     }
-	
-	draw_line(97, 225, HOR_MAX - 97, 225, TOOLBAR_COLOR);
-	draw_line(97, 226, HOR_MAX - 97, 226, TOOLBAR_COLOR);
+
+    draw_line(97, 225, HOR_MAX - 97, 225, TOOLBAR_COLOR);
+    draw_line(97, 226, HOR_MAX - 97, 226, TOOLBAR_COLOR);
     draw_line(98, 227, HOR_MAX - 98, 227, TOOLBAR_COLOR);
-	draw_line(100, 228, HOR_MAX - 100, 228, TOOLBAR_COLOR);
+    draw_line(100, 228, HOR_MAX - 100, 228, TOOLBAR_COLOR);
     draw_line(100, 229, HOR_MAX - 100, 229, TOOLBAR_COLOR);
     draw_line(103, 230, HOR_MAX - 103, 230, TOOLBAR_COLOR);
 }
 
 
+
+void draw_whole_note(int x_center, int y_center) {
+    for (int i = -4; i < 5; i++) {
+        for (int j = -7; j < 8; j++) {
+            if (whole_note[i+4][j+7] == 1) {
+                plot_pixel(x_center + j, y_center + i, BLACK);
+            }
+        }
+    }
+}
 
 void draw_whole_note(int x_center, int y_center) {
     for (int i = -4; i < 5; i++) {
@@ -269,7 +277,7 @@ void draw_note(int x_center, int y_center) {
                 plot_pixel(x_center + j, y_center + i, BLACK);
             }
         }
-    }    
+    }
 }
 
 void draw_half_note(int x_center, int y_center) {
@@ -295,33 +303,63 @@ void draw_eighth_note(int x_center, int y_center) {
 
 void draw_sixteenth_note(int x_center, int y_center) {
     draw_eighth_note(x_center, y_center);
-	if (y_center > staff_center) {
-		draw_flag(x_center, y_center + 4);
-	}
-	else draw_flag(x_center, y_center - 4);
+    if (y_center > staff_center) {
+        draw_flag(x_center, y_center + 4);
+    }
+    else draw_flag(x_center, y_center - 4);
 }
 
 void draw_ledger_line(int x_center, int y_center) {
     draw_line(x_center - 10, y_center, x_center + 11, y_center, BLACK);
 }
 
-void draw_flag(int x, int y) { // x and y are start of flag
+void draw_flag(int x, int y) {
     if (y > staff_center) {
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 8; j++) {
                 if (flag_up[i][j] == 1) {
                     plot_pixel(x + 7 + j, y - 27 + i, BLACK);
                 }
             }
-        }      
+        }
     }
     else {
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 15; j++) {
                 if (flag_down[i][j] == 1) {
-                    plot_pixel(x - 7 + j, y + 27 + i, BLACK);
+                    plot_pixel(x - 7 + j, y + 27 - 12 + i, BLACK);
                 }
             }
-        }  
+        }
+    }
+}
+
+void draw_sharp(int x, int y) {
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (sharp[i][j] == 1) {
+                plot_pixel(x + j, y + i, BLACK);
+            }
+        }
+    }
+}
+
+void draw_flat(int x, int y) {
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (flat[i][j] == 1) {
+                plot_pixel(x + j, y + i, BLACK);
+            }
+        }
+    }
+}
+
+void draw_circle(int x, int y, short int color) {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if (circle[i][j] == 1) {
+                 plot_pixel(x + j, y + i, color);
+            }
+        }
     }
 }

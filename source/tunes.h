@@ -1,3 +1,8 @@
+#ifndef __TUNES__
+#define __TUNES__
+
+#include "database.h"
+
 // river flows in you
 static Note score4_notes[] = {
     {'A', 4, 's', false, &score4_notes[1]},
@@ -96,31 +101,35 @@ static Note score1_notes[] = {
 
 Score score4 = {
     .name = "RiverFlows",
-    .next = NULL,
     .notes = score4_notes,
+    .next = NULL,
     .tempo = 120
 };
 
 Score score3 = {
     .name = "Rick",
-    .next = &score4,
     .notes = score3_notes,
+    .next = &score4,
     .tempo = 200
 };
 
 Score score2 = {
     .name = "MiiChannel",
-    .next = &score3,
     .notes = score2_notes,
+    .next = &score3,
     .tempo = 200
 };
 
 Score score1 = {
     .name = "NovemberRain",
-    .next = &score2,
     .notes = score1_notes,
+    .next = &score2,
     .tempo = 120
 };
 
 // ScoreList is a Linked List with Score as the node
 ScoreList scoreList = {&score1};
+int score_count = 4;
+
+
+#endif

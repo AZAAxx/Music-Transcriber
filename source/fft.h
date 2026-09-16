@@ -104,6 +104,8 @@ double * format_result(Complex * a, int n);
 // computes the fft, array a is changed to be the result
 void fft(Complex * a, int n, bool inverse);
 
+void efficient_fft(Complex * a, int n, bool inverse);
+
 // returns the note in a string that has the biggest frequency component
 char * find_note(double * bins, int n);
 
@@ -111,7 +113,7 @@ char * find_note(double * bins, int n);
 void window(int * audio_input, int audio_size);
 
 // USE THIS FUNCTION: does all the above steps and returns the note as a string
-char * get_fft_result(int * audio_input, int audio_size);
+const char * get_fft_result(int * audio_input, int audio_size);
 
 
 
