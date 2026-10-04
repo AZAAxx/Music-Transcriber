@@ -10,7 +10,7 @@ void PS2_init(){
     *ps2_data_reg = 0xFF;   // reset and clear FIFO
     *ps2_ctr_reg  = 0x1;    // enable the PS/2 port (RE bit)
 
-    break_code = false; 
+    break_code = false;     // initialize the flags for key properties to false
     extended = false;  
     shift = false; 
 }
@@ -69,37 +69,33 @@ char keycode2ascii(int keycode, bool shift){
 
 char ps2_decoder(int keycode){
 
-    // handle the break and extended codes
-    if(keycode == 0xF0) {
-        break_code = true;
+    if(keycode == 0xF0) {              // handle the break and extended codes
+        break_code = true;             // break code is given when a key is released, flag stored so keys aren't counted twice
         return 0;
     }
-    else if(keycode == 0xE0) {
-        extended = true;
+    else if(keycode == 0xE0) { 
+        extended = true;               // some keys have extended codes, like the arrow keys
         return 0;
     }
 
-    // change ps2.shift when SHIFT is pressed depending on the break_code
-    if(keycode == 0x12 || keycode == 0x59){
-        if(break_code) shift = false;
-        else shift = true;
+    if(keycode == 0x12 || keycode == 0x59){      // if SHIFT has been pressed
+        if(break_code) shift = false;            // lift ps2.shift flag is key has been released
+        else shift = true;                       // and set the flag if it has been pressed
         break_code = false;
         extended = false;
         return 0;
     }
 
-    // ignore the scancode during the key release
-    if(break_code){
-        break_code = false;
+    if(break_code){            // if a key is being released and the read value is the duplicate keycode
+        break_code = false;    // set the break_code and extended to default false values
         extended = false;
-        return 0;
+        return 0;              // and ignore this keycode
     }
 
-    break_code = false;
-    extended = false;
-    
-    // right now no support for extended keys
-    char c = keycode2ascii(keycode, shift);
+    break_code = false;        // reset to default values
+    extended = false;          // right now no support for extended keys
+
+    char c = keycode2ascii(keycode, shift);  // get the char associated with the keycode
     return c;   
 }
 
@@ -115,7 +111,7 @@ int get_keycode(){
         PS2_data = *(ps2_data_reg);          // read the Data register in the PS/2 port
         RVALID = PS2_data & 0x8000;          // extract the RVALID field
         if(RVALID) 
-            return (PS2_data & 0xFF);
+            return (PS2_data & 0xFF);        // return Data values (bits 7-0) of the PS/2_data register if RVALID
     } 
 }
 
@@ -123,10 +119,9 @@ int get_keycode(){
 
 char get_char(){
 	char c = 0;
-	while (c == 0) {
-		int keycode = get_keycode();
+	while (c == 0) {                         // poll the ps2_decoder function until user enter a value
+		int keycode = get_keycode();         // this implementation is used because the program doesn't run parallel processes when using keyboard
     	c = ps2_decoder(keycode);
-		// printf("%c", c);
 	}
     return c;
 }
@@ -140,19 +135,18 @@ char * get_line(){
     char * str = malloc(buffer_size * sizeof(char));   // buffer for line
     int i = 0;
 
-    while(i < buffer_size - 1){             // leave one char for the terminating character
+    while(i < buffer_size - 1){             // iterate through the string buffer and leave one char for the terminating character
         char c = get_char();                // get char from PS2 input
         
-        if(c == 0) 
-            continue;                       // invalid scancode, no support yet, do nothing
+        if(c == 0) continue;                // invalid scancode, no support yet, do nothing
 
-        else if(c == '\b' && i > 0){        // delete the last character
-            i--;                            // go back in the str
-            delete_char(str[i]);
-            continue;
+        else if(c == '\b' && i > 0){        // delete the previous character (backspace has been pressed)
+            i--;                            // go to the previous char
+            delete_char(str[i]);            // remove it from the VGA display
+            continue; 
         }
 
-        else write((char[]) {c,'\0'});      // write c 
+        else write((char[]) {c,'\0'});      // write c to the VGA
 
         if(c == '\n'){                      // if Enter has been pressed
             str[i] = '\0';                  // add a string termination character
@@ -162,7 +156,7 @@ char * get_line(){
         i++;
         
     }
-    str[buffer_size - 1] = '\0';
+    str[buffer_size - 1] = '\0';            // add a string termination character
     return str;
 }
 

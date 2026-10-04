@@ -6,20 +6,20 @@
 
 void swap_buffers_on_vsync() {
     pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
-    *pixel_ctrl_ptr = 1;                                // write 1 into the buffer reg to request a swap
-    while (*(pixel_ctrl_ptr + 3) & 0x1);                // Wait until status.S turns 0
+    *pixel_ctrl_ptr = 1;                              // write 1 into the buffer reg to request a swap
+    while (*(pixel_ctrl_ptr + 3) & 0x1);              // Wait until status.S turns 0
 }
 
 
 
 void plot_pixel(int x, int y, short int color) {
     volatile short int *one_pixel_address;
-    one_pixel_address = (short int*) (pixel_buffer_start + (y << 10) + (x << 1));
-    *one_pixel_address = color;
+    one_pixel_address = (short int*) (pixel_buffer_start + (y << 10) + (x << 1));   // easy way to find pixel address
+    *one_pixel_address = color;                                                     // assign value to the pixel
 }
 
 
-void background(short int color) {
+void background(short int color) {                    // makes the whole display 'color'
 	for (int x = 0; x < 320; x++) {
 		for (int y = 0; y < 240; y++) {
 			plot_pixel(x, y, color); 
@@ -34,18 +34,18 @@ void VGA_init(){
     pixel_ctrl_ptr = (int *) PIXEL_BUF_CTRL_BASE;
 
     /* set front pixel buffer to Buffer 1 */
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;            // first store the address in the  back buffer
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;            // first store Buffer1 address in the  back buffer
     swap_buffers_on_vsync();                           // swap the front/back buffers, to set the front buffer location
-    pixel_buffer_start = *pixel_ctrl_ptr;              // set pixel_buffer_start to use in clear_screen()
+    pixel_buffer_start = *pixel_ctrl_ptr;              // set pixel_buffer_start to use in background()
     background(BLACK);                                 // clear the front buffer
 
 
     /* set back pixel buffer to Buffer 2 */
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;            // store Buffer2 address in back buffer
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);        // we draw on the back buffer
     background(BLACK); 
 
-    CURSOR_Y_DEFAULT = 20;                             // arbitrary values for now
+    CURSOR_Y_DEFAULT = 20;                             // arbitrary values at the top left side of the display
     CURSOR_X_DEFAULT = 10;
     CURSOR_Y = CURSOR_Y_DEFAULT;
     CURSOR_X = CURSOR_X_DEFAULT;
@@ -63,15 +63,15 @@ void draw_char(char c, short int color)
     const GFXglyph *glyph  = &font->glyph[c - font->first];
     const uint8_t  *bitmap = font->bitmap;
 
-    uint16_t bit_offset = glyph->bitmapOffset * 8;                 // byte → bit index
+    uint16_t bit_offset = glyph->bitmapOffset * 8;              // byte → bit index
     int gx = CURSOR_X + glyph->xOffset;
-    int gy = CURSOR_Y + glyph->yOffset;                            // yOffset is negative — goes above baseline
+    int gy = CURSOR_Y + glyph->yOffset;                         // yOffset is negative — goes above baseline
 
     for (int row = 0; row < glyph->height; row++) {
         for (int col = 0; col < glyph->width; col++) {
-            uint16_t b = bit_offset + row * glyph->width + col;         // calculate the position of the bit within the bitmap
+            uint16_t b = bit_offset + row * glyph->width + col; // calculate the position of the bit within the bitmap
            
-            if (bitmap[b / 8] & (0x80 >> (b % 8))) {                    // Extract the bit: MSB first within each byte
+            if (bitmap[b / 8] & (0x80 >> (b % 8))) {            // Extract the bit: MSB first within each byte
                 plot_pixel(gx + col, gy + row, color);
             }
         }
@@ -81,39 +81,38 @@ void draw_char(char c, short int color)
 
 /* ONLY USE THIS FUNCTION TO WRITE STUFF */
 void write(const char * str, short int color){
-    const GFXfont *font = &FONT;
+    const GFXfont *font = &FONT;                                // FONT defined as FreeMono9pt7b in header file
 
-    while (*str != '\0') {             // while it is not the terminating character yet
+    while (*str != '\0') {                                      // while it is not the terminating character yet
         char c = *str++;
 
-        if (c == '\n') {                                  // if there is a newline
-            CURSOR_Y += font->yAdvance;                   // increment Y to go to the next line and reset the X position
+        if (c == '\n') {                                        // if there is a newline
+            CURSOR_Y += font->yAdvance;                         // increment Y to go to the next line and reset the X position
             CURSOR_X = CURSOR_X_DEFAULT;
             continue;
         }
+        if (c < font->first || c > font->last) continue;        // if char is outside the supported range of values, skip
 
-        if (c < font->first || c > font->last) continue;
-
-        draw_char(c, color);
+        draw_char(c, color);                                    // draw the char on VGA display and switch VGA buffers
         swap_buffers_on_vsync();
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
-        draw_char(c, color);
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1);             // change to back buffer
+        draw_char(c, color);                                    // draw the char on second buffer
 
         const GFXglyph *glyph  = &font->glyph[c - font->first];
-        CURSOR_X += glyph->xAdvance;
+        CURSOR_X += glyph->xAdvance;                            // advance cursor position by the x-offset defined in the library
     }
 }
 
 
 
-void delete_char(char c){
-    const GFXfont *font = &FONT;
+void delete_char(char c){ 
+    const GFXfont *font = &FONT;                                // FONT defined as FreeMono9pt7b in header file
     const GFXglyph *glyph  = &font->glyph[c - font->first];
-    CURSOR_X -= glyph->xAdvance;
+    CURSOR_X -= glyph->xAdvance;                                // decrement cursor position by the x-offset defined in the library
 
-    draw_char(c, BLACK);  
-    swap_buffers_on_vsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);       // change to back buffer
+    draw_char(c, BLACK);                                        // redraw the char in BLACK (background color), to remove it from display
+    swap_buffers_on_vsync();                                    // switch buffers and remove the char on the second buffer
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
     draw_char(c, BLACK);  
 }
 
